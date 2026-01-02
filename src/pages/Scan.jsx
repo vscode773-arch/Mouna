@@ -4,6 +4,7 @@ import { Scan, X, Zap, Image as ImageIcon, RotateCcw, CheckCircle } from 'lucide
 import { Html5Qrcode } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
 import { playScanSound } from '../lib/utils';
+import { API_URL } from '../config';
 
 export default function ScanPage() {
     const navigate = useNavigate();
@@ -53,8 +54,29 @@ export default function ScanPage() {
     }, [isScanning]);
 
     const handleScanSuccess = async (barcode) => {
-        // Here you would typically fetch product details
-        // For now, let's mock the fetch or use the OpenFoodFacts API like used elsewhere
+        // 1. First, check our LOCAL database for the product (user's custom data)
+        try {
+            const localResponse = await fetch(`${API_URL}/api/products`);
+            if (localResponse.ok) {
+                const products = await localResponse.json();
+                const existingProduct = products.find(p => p.barcode === barcode);
+
+                if (existingProduct) {
+                    setScannedData({
+                        barcode: barcode,
+                        name: existingProduct.name,
+                        image: existingProduct.image || 'https://via.placeholder.com/300',
+                        exists: true
+                    });
+                    setIsScanning(false);
+                    return; // Stop here, we found it locally!
+                }
+            }
+        } catch (error) {
+            console.error("Failed to check local DB", error);
+        }
+
+        // 2. If not found locally, fetch from OpenFoodFacts
         try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
             const data = await response.json();
