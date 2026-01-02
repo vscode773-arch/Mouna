@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import OneSignal from 'react-onesignal';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -25,6 +26,24 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default function App() {
+  useEffect(() => {
+    // Initialize OneSignal
+    try {
+      OneSignal.init({
+        appId: "YOUR-ONESIGNAL-APP-ID-HERE", // الاستبدال بـ App ID الخاص بك
+        allowLocalhostAsSecureOrigin: true, // للسماح بالتجربة على الجهاز المحلي
+        notifyButton: {
+          enable: true,
+        },
+      }).then(() => {
+        console.log("OneSignal Initialized");
+        // OneSignal.Slidedown.promptPush(); // طلب الإذن فوراً إذا أردت
+      });
+    } catch (error) {
+      console.error("OneSignal Init Error:", error);
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <Routes>
