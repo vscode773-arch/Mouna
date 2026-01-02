@@ -297,6 +297,28 @@ export default function Settings() {
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
                     </label>
                 </div>
+
+                <button
+                    onClick={() => {
+                        // Try simple browser notification
+                        if (!("Notification" in window)) {
+                            alert("متصفحك لا يدعم الإشعارات");
+                        } else if (Notification.permission === "granted") {
+                            new Notification("تجربة إشعار محلي", { body: "هذا إشعار تجريبي مباشر من المتصفح!" });
+                        } else if (Notification.permission !== "denied") {
+                            Notification.requestPermission().then(permission => {
+                                if (permission === "granted") {
+                                    new Notification("تجربة إشعار محلي", { body: "شكراً لتفعيل الإشعارات!" });
+                                }
+                            });
+                        } else {
+                            alert("الإشعارات محظورة في إعدادات المتصفح");
+                        }
+                    }}
+                    className="mt-2 w-full p-2 text-sm text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 transition-colors"
+                >
+                    مراجعة حالة الإشعارات (اختبار)
+                </button>
             </Section>
 
             {user?.role === 'admin' && (
