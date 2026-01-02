@@ -10,7 +10,6 @@ export function playScanSound() {
     if (!AudioContext) return;
 
     const ctx = new AudioContext();
-    // Try to resume if suspended (common on mobile)
     if (ctx.state === 'suspended') {
         ctx.resume().catch(() => { });
     }
@@ -22,13 +21,14 @@ export function playScanSound() {
     gain.connect(ctx.destination);
 
     // Industrial Scanner Sound (Zebra/Symbol Style)
-    osc.type = 'square'; // Square wave is the loudest and punchiest
-    osc.frequency.setValueAtTime(2200, ctx.currentTime); // High pitch (2.2kHz) cuts through noise
+    // Square wave is the loudest and punchiest, typical for scanners
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(2200, ctx.currentTime); // High pitch (2.2kHz)
 
     // Aggressive Envelope
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.01); // Immediate max volume
-    gain.gain.setValueAtTime(1.0, ctx.currentTime + 0.08); // Sustain at max
+    gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.01); // Instant loud
+    gain.gain.setValueAtTime(1.0, ctx.currentTime + 0.08); // Sustain
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15); // Fast cutoff
 
     osc.start();
