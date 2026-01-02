@@ -21,7 +21,7 @@ export default function Login() {
             await login(username, password);
             navigate('/');
         } catch (err) {
-            setError(err);
+            setError(err.message || 'فشل تسجيل الدخول');
         } finally {
             setLoading(false);
         }
