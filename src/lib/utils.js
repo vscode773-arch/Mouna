@@ -20,15 +20,16 @@ export function playScanSound() {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    // Matches the sound in the video: Sharp, high-pitch electronic beep
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(2400, ctx.currentTime); // 2.4kHz gives that sharp "electronic" tone
+    // Standard Supermarket Beep (Sine Wave - Clean Tone)
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1760, ctx.currentTime); // 1760Hz (A6) is the standard "System Beep" pitch
 
-    // Quick burst envelope
-    gain.gain.setValueAtTime(0.8, ctx.currentTime); // Loud volume
-    gain.gain.linearRampToValueAtTime(0.8, ctx.currentTime + 0.05); // Sustain
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1); // Quick release
+    // Clean Envelope (No harsh start/stop)
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.01); // Fast attack
+    gain.gain.setValueAtTime(1, ctx.currentTime + 0.08); // Sustain
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.12); // Fast release
 
     osc.start();
-    osc.stop(ctx.currentTime + 0.12); // Short & punchy
+    osc.stop(ctx.currentTime + 0.15);
 }
