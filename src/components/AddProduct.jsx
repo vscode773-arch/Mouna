@@ -50,16 +50,8 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                     }
                 };
 
-                // Try requesting higher resolution and focus, but keep it flexible to avoid black screen
-                const constraints = {
-                    facingMode: "environment",
-                    width: { ideal: 1920 }, // Request 1080p ideal, but accept lower
-                    height: { ideal: 1080 },
-                    focusMode: "continuous"
-                };
-
                 html5QrCode.start(
-                    constraints,
+                    { facingMode: "environment" },
                     config,
                     (decodedText) => {
                         playScanSound();
