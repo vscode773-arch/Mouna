@@ -44,15 +44,22 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
 
                 const config = {
                     fps: 30,
-                    qrbox: { width: 300, height: 200 },
-                    aspectRatio: 1.0,
+                    qrbox: { width: 320, height: 180 },
                     experimentalFeatures: {
                         useBarCodeDetectorIfSupported: true
                     }
                 };
 
+                const constraints = {
+                    facingMode: "environment",
+                    focusMode: "continuous",
+                    advanced: [{ focusMode: "continuous" }],
+                    width: { min: 640, ideal: 1280, max: 1920 },
+                    height: { min: 480, ideal: 720, max: 1080 }
+                };
+
                 html5QrCode.start(
-                    { facingMode: "environment" },
+                    constraints,
                     config,
                     (decodedText) => {
                         playScanSound();

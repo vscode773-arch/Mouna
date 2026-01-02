@@ -19,16 +19,23 @@ export default function ScanPage() {
                 scannerRef.current = html5QrCode;
 
                 const config = {
-                    fps: 30, // Increased FPS for faster scanning
-                    qrbox: { width: 300, height: 200 }, // Wider box better for barcodes
-                    aspectRatio: 1.0,
+                    fps: 30,
+                    qrbox: { width: 320, height: 180 }, // Wider box for barcodes
                     experimentalFeatures: {
-                        useBarCodeDetectorIfSupported: true // Uses native hardware scanner if available (Much faster)
+                        useBarCodeDetectorIfSupported: true
                     }
                 };
 
+                const constraints = {
+                    facingMode: "environment",
+                    focusMode: "continuous", // Force auto-focus for shake stability
+                    advanced: [{ focusMode: "continuous" }],
+                    width: { min: 640, ideal: 1280, max: 1920 }, // Prefer higher res for accuracy
+                    height: { min: 480, ideal: 720, max: 1080 }
+                };
+
                 html5QrCode.start(
-                    { facingMode: "environment" },
+                    constraints,
                     config,
                     (decodedText) => {
                         playScanSound();
