@@ -1,23 +1,8 @@
 {
     "rewrites": [
         {
-            "source": "/OneSignalSDKWorker.js",
-            "destination": "/OneSignalSDKWorker.js"
-        },
-        {
-            "source": "/(.*)",
+            "source": "/((?!assets/|OneSignalSDKWorker\\.js|vite\\.svg|favicon\\.ico).*)",
             "destination": "/index.html"
-        }
-    ],
-    "headers": [
-        {
-            "source": "/OneSignalSDKWorker.js",
-            "headers": [
-                {
-                    "key": "Content-Type",
-                    "value": "application/javascript"
-                }
-            ]
         }
     ]
 }
