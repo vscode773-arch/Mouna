@@ -232,7 +232,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                                         className="w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-emerald-500 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all gap-2"
                                     >
                                         <Camera className="w-8 h-8" />
-                                        <span className="text-sm font-medium">التقاط صورة أو رفع ملف</span>
+                                        <span className="text-sm font-medium">التقاط صورة </span>
                                     </button>
                                 )}
                                 <input
@@ -240,6 +240,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                                     ref={fileInputRef}
                                     onChange={handleFileChange}
                                     accept="image/*"
+                                    capture="environment"
                                     className="hidden"
                                 />
                             </div>
