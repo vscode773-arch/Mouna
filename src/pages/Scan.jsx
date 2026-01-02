@@ -26,16 +26,8 @@ export default function ScanPage() {
                     }
                 };
 
-                const constraints = {
-                    facingMode: "environment",
-                    focusMode: "continuous", // Force auto-focus for shake stability
-                    advanced: [{ focusMode: "continuous" }],
-                    width: { min: 640, ideal: 1280, max: 1920 }, // Prefer higher res for accuracy
-                    height: { min: 480, ideal: 720, max: 1080 }
-                };
-
                 html5QrCode.start(
-                    constraints,
+                    { facingMode: "environment" },
                     config,
                     (decodedText) => {
                         playScanSound();

@@ -50,16 +50,8 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                     }
                 };
 
-                const constraints = {
-                    facingMode: "environment",
-                    focusMode: "continuous",
-                    advanced: [{ focusMode: "continuous" }],
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 }
-                };
-
                 html5QrCode.start(
-                    constraints,
+                    { facingMode: "environment" },
                     config,
                     (decodedText) => {
                         playScanSound();
