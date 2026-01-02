@@ -20,16 +20,16 @@ export function playScanSound() {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    // Standard Supermarket Beep (Sine Wave - Clean Tone)
-    osc.type = 'sine';
+    // Triangle wave sounds louder than sine on small speakers (phones) but smoother than square
+    osc.type = 'triangle';
     osc.frequency.setValueAtTime(1760, ctx.currentTime); // 1760Hz (A6) is the standard "System Beep" pitch
 
-    // Clean Envelope (No harsh start/stop)
+    // Maximize volume envelope
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.01); // Fast attack
-    gain.gain.setValueAtTime(1, ctx.currentTime + 0.08); // Sustain
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.12); // Fast release
+    gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.01); // Instant max volume
+    gain.gain.setValueAtTime(1.0, ctx.currentTime + 0.08); // Sustain at max
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15); // Release
 
     osc.start();
-    osc.stop(ctx.currentTime + 0.15);
+    osc.stop(ctx.currentTime + 0.2);
 }
