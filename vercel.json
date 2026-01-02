@@ -1,7 +1,7 @@
 {
     "rewrites": [
         {
-            "source": "/((?!assets/|OneSignalSDKWorker\\.js|vite\\.svg|favicon\\.ico).*)",
+            "source": "/((?!api/.*).*)",
             "destination": "/index.html"
         }
     ]
