@@ -20,18 +20,15 @@ export function playScanSound() {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    // Modern "Toot/Ding" (Sine wave with pitch slide)
-    osc.type = 'sine'; // Clean & Modern
+    // Matches the sound in the video: Sharp, high-pitch electronic beep
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(2400, ctx.currentTime); // 2.4kHz gives that sharp "electronic" tone
 
-    // Pitch Slide (Low to High = Happy/Success)
-    osc.frequency.setValueAtTime(800, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1600, ctx.currentTime + 0.1);
-
-    // Smooth Envelope
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.6, ctx.currentTime + 0.02); // Soft attack
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15); // Smooth release
+    // Quick burst envelope
+    gain.gain.setValueAtTime(0.8, ctx.currentTime); // Loud volume
+    gain.gain.linearRampToValueAtTime(0.8, ctx.currentTime + 0.05); // Sustain
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1); // Quick release
 
     osc.start();
-    osc.stop(ctx.currentTime + 0.2);
+    osc.stop(ctx.currentTime + 0.12); // Short & punchy
 }
