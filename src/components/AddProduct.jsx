@@ -41,7 +41,14 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                 html5QrCode = new Html5Qrcode("reader");
                 scannerRef.current = html5QrCode;
 
-                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                const config = {
+                    fps: 30,
+                    qrbox: { width: 300, height: 200 },
+                    aspectRatio: 1.0,
+                    experimentalFeatures: {
+                        useBarCodeDetectorIfSupported: true
+                    }
+                };
 
                 html5QrCode.start(
                     { facingMode: "environment" },
