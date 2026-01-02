@@ -80,7 +80,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
     }, [showScanner, isOpen]);
 
 
-    const [categories, setCategories] = useState(['الألبان', 'المشروبات', 'الحبوب', 'المعلبات', 'الزيوت', 'اللحوم', 'الخضروات', 'الفواكه', 'المنظفات', 'أخرى']);
+    const [categories, setCategories] = useState(['عام']);
 
     useEffect(() => {
         const fetchCategories = async () => {
