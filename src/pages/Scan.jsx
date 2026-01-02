@@ -20,14 +20,22 @@ export default function ScanPage() {
 
                 const config = {
                     fps: 30,
-                    qrbox: { width: 320, height: 180 }, // Wider box for barcodes
+                    qrbox: { width: 300, height: 200 },
                     experimentalFeatures: {
                         useBarCodeDetectorIfSupported: true
                     }
                 };
 
+                // Try requesting higher resolution and focus, but keep it flexible to avoid black screen
+                const constraints = {
+                    facingMode: "environment",
+                    width: { ideal: 1920 }, // Request 1080p ideal, but accept lower
+                    height: { ideal: 1080 },
+                    focusMode: "continuous" // Attempt to request continuous focus
+                };
+
                 html5QrCode.start(
-                    { facingMode: "environment" },
+                    constraints,
                     config,
                     (decodedText) => {
                         playScanSound();
