@@ -37,6 +37,11 @@ export default function App() {
         },
       }).then(() => {
         console.log("OneSignal Initialized");
+
+        // Debugging Subscription Status
+        console.log("🔔 Opted In:", OneSignal.User.PushSubscription.optedIn);
+        console.log("🆔 User ID:", OneSignal.User.PushSubscription.id);
+
         OneSignal.Slidedown.promptPush();
         // Add listener for foreground notifications
         OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
