@@ -16,13 +16,16 @@ export function playScanSound() {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    osc.type = 'square'; // Strong, distinct sound
-    osc.frequency.setValueAtTime(1200, ctx.currentTime); // High pitch for attention
-    osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.1); // Drop pitch slightly for "beep" effect
+    // Classic Supermarket "BEEP"
+    osc.type = 'sine'; // Sine wave is cleaner, less "8-bit"
+    osc.frequency.setValueAtTime(1600, ctx.currentTime); // ~1.6kHz is typical for scanners
 
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    // Sharp attack and release (Mechanical feel)
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.01); // Instant loud
+    gain.gain.setValueAtTime(1, ctx.currentTime + 0.08); // Sustain briefly
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15); // Quick cutoff
 
     osc.start();
-    osc.stop(ctx.currentTime + 0.15);
+    osc.stop(ctx.currentTime + 0.2);
 }
