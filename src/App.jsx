@@ -38,6 +38,10 @@ export default function App() {
       }).then(() => {
         console.log("OneSignal Initialized");
         OneSignal.Slidedown.promptPush();
+        // Add listener for foreground notifications
+        OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
+          console.log("Notification received in foreground", event);
+        });
       });
     } catch (error) {
       console.error("OneSignal Init Error:", error);
