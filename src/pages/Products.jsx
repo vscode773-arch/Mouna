@@ -7,13 +7,17 @@ import { ar } from 'date-fns/locale';
 import AddProduct from '../components/AddProduct';
 import EditProductModal from '../components/EditProductModal';
 import { API_URL } from '../config';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function Products() {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [initialAddData, setInitialAddData] = useState(null);
 
     // User Filter State
     const [selectedUser, setSelectedUser] = useState('all');
@@ -28,7 +32,13 @@ export default function Products() {
 
     useEffect(() => {
         fetchProducts();
-    }, []);
+        if (location.state?.openAddModal) {
+            setInitialAddData(location.state.productData);
+            setIsAddModalOpen(true);
+            // Clear state so it doesn't reopen on refresh/navigation
+            window.history.replaceState({}, document.title);
+        }
+    }, [location]);
 
     useEffect(() => {
         const lowerTerm = searchTerm.toLowerCase();
@@ -308,8 +318,12 @@ export default function Products() {
             {/* Add Product Modal (Existing) */}
             <AddProduct
                 isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
+                onClose={() => {
+                    setIsAddModalOpen(false);
+                    setInitialAddData(null);
+                }}
                 onAdd={handleAddProduct}
+                initialData={initialAddData}
             />
 
             {/* Edit Product Modal (New) */}

@@ -5,15 +5,27 @@ import { format } from 'date-fns';
 import { Html5Qrcode } from 'html5-qrcode';
 import { API_URL } from '../config';
 
-export default function AddProduct({ isOpen, onClose, onAdd }) {
+export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
     const [formData, setFormData] = useState({
-        barcode: '',
-        name: '',
+        barcode: initialData?.barcode || '',
+        name: initialData?.name || '',
         category: 'عام',
         expiry: format(new Date(), 'yyyy-MM-dd'),
         department: '',
-        image: ''
+        image: initialData?.image || ''
     });
+
+    useEffect(() => {
+        if (initialData) {
+            setFormData(prev => ({
+                ...prev,
+                ...initialData
+            }));
+        } else if (!isOpen) {
+            // Reset when closed
+            setFormData({ barcode: '', name: '', category: 'عام', expiry: format(new Date(), 'yyyy-MM-dd'), department: '', image: '' });
+        }
+    }, [initialData, isOpen]);
     const [loading, setLoading] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [showScanner, setShowScanner] = useState(false);

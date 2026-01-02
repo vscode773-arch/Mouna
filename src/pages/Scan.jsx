@@ -127,8 +127,20 @@ export default function ScanPage() {
                                 <RotateCcw className="w-4 h-4" />
                                 <span>مسح جديد</span>
                             </button>
-                            <button className="py-3 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/25">
-                                عرض التفاصيل
+                            <button
+                                onClick={() => navigate('/products', {
+                                    state: {
+                                        openAddModal: true,
+                                        productData: {
+                                            barcode: scannedData.barcode,
+                                            name: scannedData.exists ? scannedData.name : '',
+                                            image: scannedData.exists ? scannedData.image : ''
+                                        }
+                                    }
+                                })}
+                                className="py-3 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/25"
+                            >
+                                إضافة للمخزون
                             </button>
                         </div>
                     </motion.div>
