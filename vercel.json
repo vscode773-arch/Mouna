@@ -1,8 +1,23 @@
 {
     "rewrites": [
         {
-            "source": "/((?!OneSignalSDKWorker\\.js).*)",
+            "source": "/OneSignalSDKWorker.js",
+            "destination": "/OneSignalSDKWorker.js"
+        },
+        {
+            "source": "/(.*)",
             "destination": "/index.html"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/OneSignalSDKWorker.js",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/javascript"
+                }
+            ]
         }
     ]
 }
