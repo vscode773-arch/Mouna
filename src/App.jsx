@@ -30,14 +30,13 @@ export default function App() {
     // Initialize OneSignal
     try {
       OneSignal.init({
-        appId: "YOUR-ONESIGNAL-APP-ID-HERE", // الاستبدال بـ App ID الخاص بك
-        allowLocalhostAsSecureOrigin: true, // للسماح بالتجربة على الجهاز المحلي
+        appId: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
+        allowLocalhostAsSecureOrigin: true,
         notifyButton: {
           enable: true,
         },
       }).then(() => {
         console.log("OneSignal Initialized");
-        // OneSignal.Slidedown.promptPush(); // طلب الإذن فوراً إذا أردت
       });
     } catch (error) {
       console.error("OneSignal Init Error:", error);
