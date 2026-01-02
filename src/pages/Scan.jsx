@@ -26,8 +26,15 @@ export default function ScanPage() {
                     }
                 };
 
+                // Request continuous focus specifically to speed up scanning
+                const constraints = {
+                    facingMode: "environment",
+                    focusMode: "continuous",
+                    advanced: [{ focusMode: "continuous" }]
+                };
+
                 html5QrCode.start(
-                    { facingMode: "environment" },
+                    constraints,
                     config,
                     (decodedText) => {
                         playScanSound();
