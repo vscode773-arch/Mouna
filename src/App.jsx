@@ -41,6 +41,7 @@ export default function App() {
         // Add listener for foreground notifications
         OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
           console.log("Notification received in foreground", event);
+          alert("🔔 وصل إشعار جديد:\n" + event.notification.title + "\n" + event.notification.body);
         });
       });
     } catch (error) {
