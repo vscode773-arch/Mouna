@@ -37,6 +37,7 @@ export default function App() {
         },
       }).then(() => {
         console.log("OneSignal Initialized");
+        OneSignal.Slidedown.promptPush();
       });
     } catch (error) {
       console.error("OneSignal Init Error:", error);
