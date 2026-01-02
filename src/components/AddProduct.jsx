@@ -155,7 +155,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 rounded-t-3xl z-50 p-6 shadow-2xl border-t border-slate-100 dark:border-slate-700 block max-w-md mx-auto h-[85vh] overflow-y-auto"
+                        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 rounded-t-3xl z-50 p-6 pb-40 shadow-2xl border-t border-slate-100 dark:border-slate-700 block max-w-md mx-auto h-[85vh] overflow-y-auto"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold dark:text-white">إضافة منتج جديد</h2>
