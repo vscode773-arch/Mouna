@@ -10,7 +10,7 @@
     ],
     "headers": [
         {
-            "source": "/OneSignalSDKWorker.js",
+            "source": "/(OneSignalSDKWorker|OneSignalSDKUpdaterWorker|OneSignalSDK.sw).js",
             "headers": [
                 {
                     "key": "Content-Type",
