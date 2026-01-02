@@ -4,6 +4,7 @@ import { X, Calendar, Scan, ChevronDown, Save, Search, Loader2, Camera, Upload }
 import { format } from 'date-fns';
 import { Html5Qrcode } from 'html5-qrcode';
 import { API_URL } from '../config';
+import { playScanSound } from '../lib/utils';
 
 export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
     const [formData, setFormData] = useState({
@@ -54,6 +55,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                     { facingMode: "environment" },
                     config,
                     (decodedText) => {
+                        playScanSound();
                         setFormData(prev => ({ ...prev, barcode: decodedText }));
                         fetchProductFromGlobalDB(decodedText);
                         setShowScanner(false);

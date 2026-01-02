@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Scan, X, Zap, Image as ImageIcon, RotateCcw, CheckCircle } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
+import { playScanSound } from '../lib/utils';
 
 export default function ScanPage() {
     const navigate = useNavigate();
@@ -30,6 +31,7 @@ export default function ScanPage() {
                     { facingMode: "environment" },
                     config,
                     (decodedText) => {
+                        playScanSound();
                         handleScanSuccess(decodedText);
                         if (html5QrCode.isScanning) {
                             html5QrCode.stop().then(() => html5QrCode.clear()).catch(console.error);
