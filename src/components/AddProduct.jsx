@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Scan, ChevronDown, Save, Search, Loader2, Camera, Upload } from 'lucide-react';
 import { format } from 'date-fns';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { API_URL } from '../config';
 
 export default function AddProduct({ isOpen, onClose, onAdd }) {
@@ -18,30 +18,43 @@ export default function AddProduct({ isOpen, onClose, onAdd }) {
     const [scanning, setScanning] = useState(false);
     const [showScanner, setShowScanner] = useState(false);
     const fileInputRef = useRef(null);
+    const scannerRef = useRef(null);
 
     // Ref for the scanner container
     useEffect(() => {
-        let scanner = null;
+        let html5QrCode;
         if (showScanner && isOpen) {
-            scanner = new Html5QrcodeScanner(
-                "reader",
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                /* verbose= */ false
-            );
+            // Include a small delay to ensure the DOM element exists
+            const timer = setTimeout(() => {
+                html5QrCode = new Html5Qrcode("reader");
+                scannerRef.current = html5QrCode;
 
-            scanner.render((decodedText) => {
-                setFormData(prev => ({ ...prev, barcode: decodedText }));
-                fetchProductFromGlobalDB(decodedText);
-                setShowScanner(false);
-                scanner.clear();
-            }, (error) => {
-                // console.warn(error);
-            });
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    (decodedText) => {
+                        setFormData(prev => ({ ...prev, barcode: decodedText }));
+                        fetchProductFromGlobalDB(decodedText);
+                        setShowScanner(false);
+                        if (html5QrCode.isScanning) {
+                            html5QrCode.stop().then(() => html5QrCode.clear()).catch(console.error);
+                        }
+                    },
+                    (errorMessage) => {
+                        // console.log(errorMessage);
+                    }
+                ).catch(err => {
+                    console.error("Error starting scanner", err);
+                });
+            }, 100);
+            return () => clearTimeout(timer);
         }
 
         return () => {
-            if (scanner) {
-                scanner.clear().catch(error => console.error("Failed to clear scanner", error));
+            if (scannerRef.current && scannerRef.current.isScanning) {
+                scannerRef.current.stop().then(() => scannerRef.current.clear()).catch(console.error);
             }
         };
     }, [showScanner, isOpen]);
