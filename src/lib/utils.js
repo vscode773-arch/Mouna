@@ -14,8 +14,8 @@ export function playScanSound() {
         ctx.resume().catch(() => { });
     }
 
-    // "Toot" Sound (Classic Cash Register Beep)
-    // Deeper tone, resembling older NCR or Motorola scanners
+    // "Mall Style" Soft Beep (Standard Supermarket Checkout)
+    // Pure Sine wave, comfortable mid-range pitch, very short
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -23,15 +23,15 @@ export function playScanSound() {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    osc.type = 'triangle'; // Smoother tone, less "digital/buzzy"
-    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note - classic "beep" pitch
+    osc.type = 'sine'; // Pure tone, no buzz (softest possible sound)
+    osc.frequency.setValueAtTime(750, ctx.currentTime); // 750Hz - The "Standard" pleasant beep
 
-    // Envelope for "Toot" sound (softer attack, firm body)
+    // Envelope for a "plock" or short beep sound
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.02); // Quick but soft entry
-    gain.gain.setValueAtTime(1.0, ctx.currentTime + 0.1); // Sustain
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15); // Quick release
+    gain.gain.linearRampToValueAtTime(0.8, ctx.currentTime + 0.01); // Quick soft entry
+    gain.gain.setValueAtTime(0.8, ctx.currentTime + 0.05); // Very Short sustain
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1); // Smooth release
 
     osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.2);
+    osc.stop(ctx.currentTime + 0.15);
 }
