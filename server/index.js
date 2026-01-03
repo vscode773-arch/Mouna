@@ -80,15 +80,71 @@ app.get('/api/products', async (req, res) => {
 
 app.post('/api/products', async (req, res) => {
     try {
-        const { name, category, expiry, department, image, addedByUserId } = req.body;
+        const { name, category, expiry, department, image, addedByUserId, barcode, quantity = 1 } = req.body;
+
+        // Logic: Check if product with same barcode AND same expiry exists
+        // Note: expiry comes as string, need to normalize date for comparison
+        const expiryDate = new Date(expiry);
+        // Normalize to start of day to ensure loose comparison works if times differ
+        expiryDate.setHours(0, 0, 0, 0);
+
+        // Find existing product with same barcode
+        // Since we can't easily query by date equality in all generic DBs via Prisma findFirst without ranges, 
+        // we'll find by barcode first then filter in JS if needed, or rely on precise match if available.
+        // For robustness, let's find by barcode and filter.
+
+        let existingProduct = null;
+        if (barcode) {
+            const candidates = await prisma.product.findMany({
+                where: { barcode }
+            });
+
+            existingProduct = candidates.find(p => {
+                const pDate = new Date(p.expiry);
+                pDate.setHours(0, 0, 0, 0);
+                return pDate.getTime() === expiryDate.getTime();
+            });
+        }
+
+        if (existingProduct) {
+            // MERGE: Update quantity
+            const updatedProduct = await prisma.product.update({
+                where: { id: existingProduct.id },
+                data: {
+                    quantity: { increment: parseInt(quantity) },
+                    // Optionally update other fields if they changed? 
+                    // Let's assume user might want to update name/image too if they rescanned it.
+                    name,
+                    category,
+                    image: image || existingProduct.image, // Keep old image if new is empty
+                    department: department || existingProduct.department
+                }
+            });
+
+            // Audit Log for Merge
+            await prisma.auditLog.create({
+                data: {
+                    action: 'UPDATE',
+                    target: updatedProduct.name,
+                    details: `Increased quantity by ${quantity} (Merge)`,
+                    userId: addedByUserId
+                }
+            });
+
+            return res.json(updatedProduct);
+        }
+
+        // CREATE NEW
         const product = await prisma.product.create({
             data: {
                 name,
                 category,
                 expiry: new Date(expiry),
-                department,
+                department, // Kept for backward compatibility but UI uses it less
+                quantity: parseInt(quantity),
                 image,
-                addedByUserId
+                addedByUserId,
+                barcode
             }
         });
 
@@ -97,13 +153,14 @@ app.post('/api/products', async (req, res) => {
             data: {
                 action: 'CREATE',
                 target: product.name,
-                details: 'Added new product',
+                details: `Added new product (Qty: ${quantity})`,
                 userId: addedByUserId
             }
         });
 
         res.json(product);
     } catch (error) {
+        console.error("Create product error:", error);
         res.status(500).json({ error: 'Failed to create product' });
     }
 });
@@ -113,7 +170,7 @@ app.post('/api/products', async (req, res) => {
 app.put('/api/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, category, expiry, department, image, userId } = req.body;
+        const { name, category, expiry, department, image, userId, quantity } = req.body;
 
         const updatedProduct = await prisma.product.update({
             where: { id: parseInt(id) },
@@ -122,6 +179,7 @@ app.put('/api/products/:id', async (req, res) => {
                 category,
                 expiry: new Date(expiry),
                 department,
+                quantity: quantity ? parseInt(quantity) : undefined, // Update quantity if provided
                 image
             }
         });

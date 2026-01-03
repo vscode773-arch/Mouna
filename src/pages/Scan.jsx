@@ -72,6 +72,7 @@ export default function ScanPage() {
                         barcode: barcode,
                         name: existingProduct.name,
                         image: existingProduct.image || 'https://via.placeholder.com/300',
+                        quantity: existingProduct.quantity, // Add quantity
                         exists: true
                     });
                     setIsScanning(false);
@@ -154,8 +155,12 @@ export default function ScanPage() {
                         </div>
 
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{scannedData?.name}</h3>
-                        <p className="text-slate-500 text-sm mb-6">{scannedData?.barcode}</p>
-
+                        <p className="text-slate-500 text-sm mb-2">{scannedData?.barcode}</p>
+                        {scannedData?.exists && scannedData?.quantity && (
+                            <p className="text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-500/10 inline-block px-3 py-1 rounded-full text-sm mb-4">
+                                الكمية المخزنة: {scannedData.quantity}
+                            </p>
+                        )}
                         <img src={scannedData?.image} alt="Product" className="w-full h-48 object-cover rounded-2xl mb-6 shadow-md bg-white" />
 
                         <div className="grid grid-cols-2 gap-3">

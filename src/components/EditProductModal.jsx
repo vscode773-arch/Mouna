@@ -9,6 +9,7 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate, o
         category: product?.category || 'عام',
         expiry: product?.expiry ? format(new Date(product.expiry), 'yyyy-MM-dd') : '',
         department: product?.department || '',
+        quantity: product?.quantity || 1,
         image: product?.image || ''
     });
     const [loading, setLoading] = useState(false);
@@ -205,11 +206,12 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate, o
                                     </div>
 
                                     <div>
-                                        <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 block">المكان (الرف/القسم)</label>
+                                        <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 block">العدد (الكمية)</label>
                                         <input
-                                            type="text"
-                                            value={formData.department}
-                                            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                            type="number"
+                                            min="1"
+                                            value={formData.quantity}
+                                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                                             className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none dark:text-white"
                                         />
                                     </div>

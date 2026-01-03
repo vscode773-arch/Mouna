@@ -27,6 +27,7 @@ model Product {
   expiry      DateTime
   department  String?
   image       String?
+  quantity    Int      @default(1)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   

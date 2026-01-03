@@ -190,11 +190,10 @@ export default function Products() {
                         <span className="text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600">
                             {product.category}
                         </span>
-                        {product.department && (
-                            <span className="text-slate-400 pl-2 border-l border-slate-200 dark:border-slate-700 ml-2">
-                                {product.department}
-                            </span>
-                        )}
+
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-500/20 ml-2">
+                            العدد: {product.quantity || 1}
+                        </span>
                     </div>
 
                     {/* Added By */}

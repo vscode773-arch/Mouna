@@ -13,6 +13,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
         category: 'عام',
         expiry: format(new Date(), 'yyyy-MM-dd'),
         department: '',
+        quantity: 1,
         image: initialData?.image || ''
     });
 
@@ -319,12 +320,13 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 block">المكان</label>
+                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 block">العدد (الكمية)</label>
                                     <input
-                                        type="text"
-                                        value={formData.department}
-                                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                                        placeholder="مثال: رف 1"
+                                        type="number"
+                                        min="1"
+                                        value={formData.quantity}
+                                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                                        placeholder="1"
                                         className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none dark:text-white"
                                     />
                                 </div>
