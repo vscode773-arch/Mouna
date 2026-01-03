@@ -1,14 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import OneSignal from 'react-onesignal';
 import Layout from './components/Layout';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Products from './pages/Products';
-import AuditLog from './pages/AuditLog';
-import Settings from './pages/Settings';
-import ScanPage from './pages/Scan';
+
+// Lazy loading components for performance optimization
+const Login = lazy(() => import('./pages/Login'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Products = lazy(() => import('./pages/Products'));
+const AuditLog = lazy(() => import('./pages/AuditLog'));
+const Settings = lazy(() => import('./pages/Settings'));
+const ScanPage = lazy(() => import('./pages/Scan'));
+
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
+    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -46,21 +54,23 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <Routes>
-        <Route path="/login" element={<Login />} />
+      <Suspense fallback={<LoadingSpinner />}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
 
-        <Route path="/" element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<Dashboard />} />
-          <Route path="products" element={<Products />} />
-          <Route path="scan" element={<ScanPage />} />
-          <Route path="audit-log" element={<AuditLog />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Dashboard />} />
+            <Route path="products" element={<Products />} />
+            <Route path="scan" element={<ScanPage />} />
+            <Route path="audit-log" element={<AuditLog />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </AuthProvider>
   );
 }
