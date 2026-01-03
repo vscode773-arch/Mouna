@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Save, Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { X, Calendar, Save, Trash2, AlertTriangle, CheckCircle, Upload, Camera } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function EditProductModal({ product, isOpen, onClose, onUpdate, onDelete }) {
@@ -12,12 +12,61 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate, o
         image: product?.image || ''
     });
     const [loading, setLoading] = useState(false);
-    const [deleteStep, setDeleteStep] = useState(false); // false: edit mode, true: delete confirmation
+    const [deleteStep, setDeleteStep] = useState(false);
     const [deleteReason, setDeleteReason] = useState('');
     const [customReason, setCustomReason] = useState('');
+    const fileInputRef = useRef(null);
 
     const categories = ['الألبان', 'المشروبات', 'الحبوب', 'المعلبات', 'الزيوت', 'اللحوم', 'الخضروات', 'الفواكه', 'المنظفات', 'أخرى'];
     const deleteReasons = ['تم البيع', 'انتهت الصلاحية', 'مرتجع للشركة', 'أخرى'];
+
+    const resizeImage = (file) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+            };
+        });
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            try {
+                const resizedImage = await resizeImage(file);
+                setFormData(prev => ({ ...prev, image: resizedImage }));
+            } catch (error) {
+                console.error("Error resizing image:", error);
+            }
+        }
+    };
 
     const handleUpdate = async (e) => {
         e.preventDefault();
@@ -62,7 +111,7 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate, o
                         exit={{ scale: 0.95, opacity: 0 }}
                         className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
                     >
-                        <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl w-full max-w-md pointer-events-auto overflow-hidden relative">
+                        <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl w-full max-w-md pointer-events-auto overflow-hidden relative max-h-[90vh] overflow-y-auto">
 
                             {/* Header */}
                             <div className="flex items-center justify-between mb-6">
@@ -77,7 +126,50 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate, o
                             {!deleteStep ? (
                                 /* EDIT FORM */
                                 <form onSubmit={handleUpdate} className="space-y-4">
-                                    {/* Fields similar to AddProduct but populated */}
+
+                                    {/* Image Edit Section */}
+                                    <div>
+                                        <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2 block">صورة المنتج</label>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 relative">
+                                                {formData.image ? (
+                                                    <img src={formData.image} alt="Product" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                                        <Camera className="w-8 h-8 opacity-50" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1 flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                                                >
+                                                    <Upload className="w-4 h-4" />
+                                                    تغيير الصورة
+                                                </button>
+                                                {formData.image && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, image: '' })}
+                                                        className="bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 p-2 rounded-lg transition-colors"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                onChange={handleFileChange}
+                                                accept="image/*"
+                                                className="hidden"
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div>
                                         <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 block">اسم المنتج</label>
                                         <input
@@ -110,6 +202,16 @@ export default function EditProductModal({ product, isOpen, onClose, onUpdate, o
                                                 className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none dark:text-white"
                                             />
                                         </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 block">المكان (الرف/القسم)</label>
+                                        <input
+                                            type="text"
+                                            value={formData.department}
+                                            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none dark:text-white"
+                                        />
                                     </div>
 
                                     <div className="flex gap-3 mt-6 pt-4 border-t border-slate-100 dark:border-slate-700">
