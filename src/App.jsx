@@ -35,6 +35,15 @@ const ProtectedRoute = ({ children }) => {
 
 export default function App() {
   useEffect(() => {
+    // Initialize Dark Mode from LocalStorage
+    const savedMode = localStorage.getItem('darkMode');
+    const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedMode === 'true' || (savedMode === null && isSystemDark)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
     // Initialize OneSignal
     try {
       OneSignal.init({
