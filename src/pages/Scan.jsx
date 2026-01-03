@@ -60,7 +60,8 @@ export default function ScanPage() {
             const localResponse = await fetch(`${API_URL}/api/products?barcode=${barcode}`);
             if (localResponse.ok) {
                 const products = await localResponse.json();
-                const existingProduct = products.length > 0 ? products[0] : null;
+                // Safety check: ensure exact match
+                const existingProduct = products.find(p => p.barcode === barcode);
 
                 if (existingProduct) {
                     setScannedData({
