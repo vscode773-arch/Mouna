@@ -14,8 +14,8 @@ export function playScanSound() {
         ctx.resume().catch(() => { });
     }
 
-    // Datalogic Handheld Scanner Sound (Gryphon/QuickScan style)
-    // Sharp, crisp square wave beep
+    // "Toot" Sound (Classic Cash Register Beep)
+    // Deeper tone, resembling older NCR or Motorola scanners
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -23,16 +23,15 @@ export function playScanSound() {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    // Square wave for that distinct "digital" beep
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(2400, ctx.currentTime); // High pitch (approx C#7)
+    osc.type = 'triangle'; // Smoother tone, less "digital/buzzy"
+    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note - classic "beep" pitch
 
-    // Very fast snappy envelope
+    // Envelope for "Toot" sound (softer attack, firm body)
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.005); // Instant attack
-    gain.gain.setValueAtTime(0.5, ctx.currentTime + 0.05); // Short hold
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1); // Quick release
+    gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.02); // Quick but soft entry
+    gain.gain.setValueAtTime(1.0, ctx.currentTime + 0.1); // Sustain
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15); // Quick release
 
     osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.15);
+    osc.stop(ctx.currentTime + 0.2);
 }
