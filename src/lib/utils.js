@@ -28,8 +28,8 @@ export function playScanSound() {
 
     // Envelope for a "plock" or short beep sound
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.8, ctx.currentTime + 0.01); // Quick soft entry
-    gain.gain.setValueAtTime(0.8, ctx.currentTime + 0.05); // Very Short sustain
+    gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.01); // Quick soft entry, Max Volume (1.0)
+    gain.gain.setValueAtTime(1.0, ctx.currentTime + 0.05); // Sustain at Max
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1); // Smooth release
 
     osc.start(ctx.currentTime);
