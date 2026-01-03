@@ -105,10 +105,10 @@ export default function Login() {
                     </button>
                 </form>
 
-                <div className="mt-8 text-center">
-                    <p className="text-xs text-slate-500">
-                        © 2026 Mouna System. جميع الحقوق محفوظة
-                    </p>
+                <div className="mt-8 text-center pt-6 border-t border-slate-700/50">
+                    <p className="text-[10px] text-slate-500 mb-1">جميع حقوق التطوير محفوظة © 2026</p>
+                    <p className="text-xs font-bold text-slate-400 mb-1">برمجة وتطوير: محمد أمين الكامل</p>
+                    <p className="text-[10px] text-slate-600">يمنع منعاً باتاً النسخ أو التعديل دون إذن كتابي</p>
                 </div>
             </motion.div>
         </div>
