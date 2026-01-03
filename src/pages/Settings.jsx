@@ -352,7 +352,7 @@ export default function Settings() {
                 <span>تسجيل الخروج من التطبيق</span>
             </button>
 
-            <div className="flex justify-end pt-4 pb-20 md:pb-0">
+            <div className="flex justify-end pt-4 md:pb-0">
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
@@ -365,6 +365,13 @@ export default function Settings() {
                     )}
                     <span>{isSaving ? 'جاري الحفظ...' : 'حفظ التغييرات'}</span>
                 </button>
+            </div>
+
+            {/* Credits Section */}
+            <div className="mt-8 text-center border-t border-slate-100 dark:border-slate-800 pt-8 pb-24 md:pb-8">
+                <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">جميع حقوق التطوير محفوظة © 2026</p>
+                <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">برمجة وتطوير: محمد أمين الكامل</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-600">يمنع منعاً باتاً النسخ أو التعديل دون إذن كتابي</p>
             </div>
 
             {/* Management Modals */}
