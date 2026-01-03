@@ -14,23 +14,39 @@ export function playScanSound() {
         ctx.resume().catch(() => { });
     }
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    // Datalogic Magellan Scanner Sound (Fixed Scanner)
+    // Famous "Chirp" or double-tone sound
+    // First tone
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
 
-    // Datalogic Scanner Sound Simulation
-    // Square wave gives that distinct "electronic" scanner beep character
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(2400, ctx.currentTime); // High pitch (approx C#7) typical of Datalogic
+    osc1.type = 'sawtooth'; // Slightly smoother but techy
+    osc1.frequency.setValueAtTime(2000, ctx.currentTime);
 
-    // Sharp envelope
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.01); // Fast attack, not too loud to distort
-    gain.gain.setValueAtTime(0.5, ctx.currentTime + 0.05); // Short sustain
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1); // Quick decay
+    gain1.gain.setValueAtTime(0, ctx.currentTime);
+    gain1.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.01);
+    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
 
-    osc.start();
-    osc.stop(ctx.currentTime + 0.15);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.1);
+
+    // Second tone (slightly higher, creates the chirp effect)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+
+    osc2.type = 'sawtooth';
+    osc2.frequency.setValueAtTime(2500, ctx.currentTime + 0.04); // Higher pitch, delayed
+
+    gain2.gain.setValueAtTime(0, ctx.currentTime + 0.04);
+    gain2.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+
+    osc2.start(ctx.currentTime + 0.04);
+    osc2.stop(ctx.currentTime + 0.15);
 }
