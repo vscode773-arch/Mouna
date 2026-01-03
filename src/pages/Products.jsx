@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, Scan, ArrowRight, User } from 'lucide-react';
+import { Search, Filter, Plus, Scan, ArrowRight, User, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { format, differenceInDays } from 'date-fns';
@@ -13,56 +13,77 @@ export default function Products() {
     const location = useLocation();
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
-    const [filteredProducts, setFilteredProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [initialAddData, setInitialAddData] = useState(null);
 
-    // User Filter State
-    const [selectedUser, setSelectedUser] = useState('all');
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     // New State for Edit/Delete
     const [editingProduct, setEditingProduct] = useState(null);
 
     const { user } = useAuth();
 
-    // Get Unique Users list from products
-    const usersList = [...new Set(products.map(p => p.addedBy?.name).filter(Boolean))];
+    // Reset list when search changes
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            setPage(1);
+            fetchProducts(1, true);
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
 
     useEffect(() => {
-        fetchProducts();
         if (location.state?.openAddModal) {
             setInitialAddData(location.state.productData);
             setIsAddModalOpen(true);
-            // Clear state so it doesn't reopen on refresh/navigation
             window.history.replaceState({}, document.title);
         }
     }, [location]);
 
-    useEffect(() => {
-        const lowerTerm = searchTerm.toLowerCase();
-        const filtered = products.filter(p => {
-            const matchesSearch = p.name.toLowerCase().includes(lowerTerm) || (p.barcode && p.barcode.includes(lowerTerm));
-            const matchesUser = selectedUser === 'all' || p.addedBy?.name === selectedUser;
-            return matchesSearch && matchesUser;
-        });
-        setFilteredProducts(filtered);
-    }, [searchTerm, selectedUser, products]);
-
-    const fetchProducts = async () => {
+    const fetchProducts = async (pageNum = 1, reset = false) => {
         try {
-            setLoading(true);
-            const response = await fetch(`${API_URL}/api/products`);
+            if (pageNum === 1) setLoading(true);
+            else setIsLoadingMore(true);
+
+            const query = new URLSearchParams({
+                page: pageNum,
+                limit: 20, // Load 20 at a time for speed
+                search: searchTerm
+            });
+
+            const response = await fetch(`${API_URL}/api/products?${query}`);
             if (response.ok) {
-                const data = await response.json();
-                setProducts(data);
+                const result = await response.json();
+                const newProducts = result.data || [];
+
+                if (reset) {
+                    setProducts(newProducts);
+                } else {
+                    setProducts(prev => [...prev, ...newProducts]);
+                }
+
+                // Pagination check
+                const totalLoaded = (pageNum - 1) * 20 + newProducts.length;
+                setHasMore(totalLoaded < (result.pagination?.total || 0));
             }
         } catch (error) {
             console.error("Failed to fetch products", error);
         } finally {
             setLoading(false);
+            setIsLoadingMore(false);
         }
+    };
+
+    const loadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchProducts(nextPage, false);
     };
 
     const handleAddProduct = async (newProduct) => {
@@ -74,7 +95,8 @@ export default function Products() {
             });
 
             if (response.ok) {
-                fetchProducts();
+                setPage(1);
+                fetchProducts(1, true);
             }
         } catch (error) {
             console.error("Failed to add product", error);
@@ -91,7 +113,8 @@ export default function Products() {
             });
 
             if (response.ok) {
-                fetchProducts();
+                // Update specific product in the list locally to avoid refetch
+                setProducts(prev => prev.map(p => p.id === updatedProduct.id ? { ...p, ...updatedProduct } : p));
             }
         } catch (error) {
             console.error("Failed to update product", error);
@@ -112,7 +135,7 @@ export default function Products() {
             });
 
             if (response.ok) {
-                fetchProducts(); // Refresh list
+                setProducts(prev => prev.filter(p => p.id !== productId));
             }
         } catch (error) {
             console.error("Failed to delete product", error);
@@ -121,7 +144,6 @@ export default function Products() {
 
     const getExpiryStatus = (expiryDate) => {
         const today = new Date();
-        // Reset hours to compare dates only
         today.setHours(0, 0, 0, 0);
         const expiry = new Date(expiryDate);
         expiry.setHours(0, 0, 0, 0);
@@ -129,21 +151,14 @@ export default function Products() {
         const diffDays = differenceInDays(expiry, today);
 
         if (diffDays < 0) return { label: 'منتهي الصلاحية', color: 'bg-red-500', status: 'expired' };
-        if (diffDays === 0) return { label: 'ينتهي اليوم', color: 'bg-red-500', status: 'today' }; // New status for Today
+        if (diffDays === 0) return { label: 'ينتهي اليوم', color: 'bg-red-500', status: 'today' };
         if (diffDays <= 7) return { label: 'ينتهي قريباً', color: 'bg-orange-500', status: 'soon' };
         return { label: 'صالح', color: 'bg-emerald-500', status: 'valid' };
     };
 
-    // Group products by status
-    const groupedProducts = {
-        expired: filteredProducts.filter(p => ['expired', 'today'].includes(getExpiryStatus(p.expiry).status)), // Group today with expired/urgent
-        soon: filteredProducts.filter(p => getExpiryStatus(p.expiry).status === 'soon'),
-        valid: filteredProducts.filter(p => getExpiryStatus(p.expiry).status === 'valid'),
-    };
-
     const ProductCard = ({ product }) => {
         const statusInfo = getExpiryStatus(product.expiry);
-        const diffDays = differenceInDays(new Date(product.expiry), new Date()); // Keep original for exact day diff calculation if needed, or use logic from status
+        const diffDays = differenceInDays(new Date(product.expiry), new Date());
 
         return (
             <motion.div
@@ -151,7 +166,7 @@ export default function Products() {
                 onClick={() => setEditingProduct(product)}
                 className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center gap-4 group hover:shadow-md transition-all cursor-pointer relative overflow-hidden"
             >
-                {/* Status Strip - Right Side for RTL */}
+                {/* Status Strip */}
                 <div className={`absolute right-0 top-0 bottom-0 w-1.5 ${statusInfo.color}`} />
 
                 {/* Image */}
@@ -205,6 +220,7 @@ export default function Products() {
             </motion.div>
         );
     };
+
     return (
         <div className="pb-20 md:pb-0 space-y-6">
             {/* Header & Search */}
@@ -214,29 +230,10 @@ export default function Products() {
                     <p className="text-slate-500 dark:text-slate-400">إدارة صلاحية المنتجات والمخزون</p>
                 </div>
 
-                {/* Search & Filter Bar */}
+                {/* Search & Action Bar */}
                 <div className="flex items-center gap-2 w-full md:w-auto bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/50">
 
-                    {/* User Selection Filter - Compact */}
-                    {usersList.length > 0 && (
-                        <div className="relative flex-shrink-0">
-                            <select
-                                value={selectedUser}
-                                onChange={(e) => setSelectedUser(e.target.value)}
-                                className="appearance-none bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 border-none rounded-xl py-2.5 pl-3 pr-9 text-sm font-medium focus:ring-0 focus:outline-none dark:text-white cursor-pointer transition-colors w-[140px] truncate"
-                            >
-                                <option value="all">كل المستخدمين</option>
-                                {usersList.map((u, i) => (
-                                    <option key={i} value={u}>{u}</option>
-                                ))}
-                            </select>
-                            <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-                        </div>
-                    )}
-
-                    <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>
-
-                    {/* Search Input - Flexible */}
+                    {/* Search Input */}
                     <div className="relative flex-1">
                         <input
                             type="text"
@@ -248,7 +245,7 @@ export default function Products() {
                         <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     </div>
 
-                    {/* Add Button - Compact */}
+                    {/* Add Button */}
                     <button
                         onClick={() => setIsAddModalOpen(true)}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-transform active:scale-95 flex-shrink-0"
@@ -263,47 +260,27 @@ export default function Products() {
                     <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : (
-                <div className="space-y-8">
-                    {/* Expired Section */}
-                    {groupedProducts.expired.length > 0 && (
-                        <section>
-                            <h3 className="text-red-500 font-bold mb-3 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-red-500" />
-                                منتهية الصلاحية
-                            </h3>
-                            <div className="flex flex-col gap-3">
-                                {groupedProducts.expired.map(p => <ProductCard key={p.id} product={p} />)}
-                            </div>
-                        </section>
+                <div className="space-y-4">
+                    {/* Products List - Flat List instead of Groups for performance */}
+                    <div className="flex flex-col gap-3">
+                        {products.map(p => <ProductCard key={p.id} product={p} />)}
+                    </div>
+
+                    {/* Load More Button */}
+                    {hasMore && products.length > 0 && (
+                        <div className="flex justify-center pt-4">
+                            <button
+                                onClick={loadMore}
+                                disabled={isLoadingMore}
+                                className="px-6 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {isLoadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
+                                <span>{isLoadingMore ? 'جاري التحميل...' : 'تحميل المزيد'}</span>
+                            </button>
+                        </div>
                     )}
 
-                    {/* Sooon Section */}
-                    {groupedProducts.soon.length > 0 && (
-                        <section>
-                            <h3 className="text-orange-500 font-bold mb-3 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-orange-500" />
-                                تنتهي قريباً
-                            </h3>
-                            <div className="flex flex-col gap-3">
-                                {groupedProducts.soon.map(p => <ProductCard key={p.id} product={p} />)}
-                            </div>
-                        </section>
-                    )}
-
-                    {/* Valid Section */}
-                    {groupedProducts.valid.length > 0 && (
-                        <section>
-                            <h3 className="text-emerald-500 font-bold mb-3 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                صالحة لفترة طويلة
-                            </h3>
-                            <div className="flex flex-col gap-3">
-                                {groupedProducts.valid.map(p => <ProductCard key={p.id} product={p} />)}
-                            </div>
-                        </section>
-                    )}
-
-                    {filteredProducts.length === 0 && (
+                    {products.length === 0 && !loading && (
                         <div className="text-center py-20">
                             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
                                 <Scan className="w-8 h-8" />
@@ -315,7 +292,7 @@ export default function Products() {
                 </div>
             )}
 
-            {/* Add Product Modal (Existing) */}
+            {/* Modals remain the same */}
             <AddProduct
                 isOpen={isAddModalOpen}
                 onClose={() => {
@@ -326,7 +303,6 @@ export default function Products() {
                 initialData={initialAddData}
             />
 
-            {/* Edit Product Modal (New) */}
             {editingProduct && (
                 <EditProductModal
                     isOpen={!!editingProduct}

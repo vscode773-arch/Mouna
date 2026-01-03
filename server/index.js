@@ -38,19 +38,42 @@ app.post('/api/login', async (req, res) => {
 // --- Product Routes ---
 app.get('/api/products', async (req, res) => {
     try {
-        const { barcode } = req.query;
+        const { barcode, page = 1, limit = 50, search = '' } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
         const where = {};
 
         if (barcode) {
             where.barcode = barcode;
+        } else if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { barcode: { contains: search, mode: 'insensitive' } }
+            ];
         }
+
+        // Get total count for pagination info
+        const total = await prisma.product.count({ where });
 
         const products = await prisma.product.findMany({
             where,
-            include: { addedBy: { select: { name: true } } }
+            skip: barcode ? 0 : skip, // No skip if searching by exact barcode
+            take: barcode ? undefined : parseInt(limit),
+            include: { addedBy: { select: { name: true } } },
+            orderBy: { createdAt: 'desc' }
         });
-        res.json(products);
+
+        res.json({
+            data: products,
+            pagination: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(total / parseInt(limit))
+            }
+        });
     } catch (error) {
+        console.error("Fetch products error:", error);
         res.status(500).json({ error: 'Failed to fetch products' });
     }
 });

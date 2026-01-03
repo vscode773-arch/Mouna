@@ -59,9 +59,13 @@ export default function ScanPage() {
             // Optimized: Fetch only the specific barcode instead of all products
             const localResponse = await fetch(`${API_URL}/api/products?barcode=${barcode}`);
             if (localResponse.ok) {
-                const products = await localResponse.json();
+                const responseJson = await localResponse.json();
+                const products = responseJson.data || responseJson; // Handle both old (array) and new (paginated) formats for safety
+
                 // Safety check: ensure exact match
-                const existingProduct = products.find(p => p.barcode === barcode);
+                const existingProduct = Array.isArray(products)
+                    ? products.find(p => p.barcode === barcode)
+                    : null;
 
                 if (existingProduct) {
                     setScannedData({
