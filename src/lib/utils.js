@@ -20,16 +20,17 @@ export function playScanSound() {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    // Triangle wave sounds louder than sine on small speakers (phones) but smoother than square
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(1760, ctx.currentTime); // 1760Hz (A6) is the standard "System Beep" pitch
+    // Datalogic Scanner Sound Simulation
+    // Square wave gives that distinct "electronic" scanner beep character
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(2400, ctx.currentTime); // High pitch (approx C#7) typical of Datalogic
 
-    // Maximize volume envelope
+    // Sharp envelope
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.01); // Instant max volume
-    gain.gain.setValueAtTime(1.0, ctx.currentTime + 0.08); // Sustain at max
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15); // Release
+    gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.01); // Fast attack, not too loud to distort
+    gain.gain.setValueAtTime(0.5, ctx.currentTime + 0.05); // Short sustain
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1); // Quick decay
 
     osc.start();
-    osc.stop(ctx.currentTime + 0.2);
+    osc.stop(ctx.currentTime + 0.15);
 }
