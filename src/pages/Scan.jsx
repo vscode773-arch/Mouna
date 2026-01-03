@@ -56,10 +56,11 @@ export default function ScanPage() {
     const handleScanSuccess = async (barcode) => {
         // 1. First, check our LOCAL database for the product (user's custom data)
         try {
-            const localResponse = await fetch(`${API_URL}/api/products`);
+            // Optimized: Fetch only the specific barcode instead of all products
+            const localResponse = await fetch(`${API_URL}/api/products?barcode=${barcode}`);
             if (localResponse.ok) {
                 const products = await localResponse.json();
-                const existingProduct = products.find(p => p.barcode === barcode);
+                const existingProduct = products.length > 0 ? products[0] : null;
 
                 if (existingProduct) {
                     setScannedData({

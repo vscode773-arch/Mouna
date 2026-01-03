@@ -38,7 +38,15 @@ app.post('/api/login', async (req, res) => {
 // --- Product Routes ---
 app.get('/api/products', async (req, res) => {
     try {
+        const { barcode } = req.query;
+        const where = {};
+
+        if (barcode) {
+            where.barcode = barcode;
+        }
+
         const products = await prisma.product.findMany({
+            where,
             include: { addedBy: { select: { name: true } } }
         });
         res.json(products);
