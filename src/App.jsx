@@ -35,7 +35,7 @@ const ProtectedRoute = ({ children }) => {
 
 export default function App() {
   useEffect(() => {
-    // Initialize Dark Mode from LocalStorage
+    // 1. Initialize Dark Mode
     const savedMode = localStorage.getItem('darkMode');
     const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     if (savedMode === 'true' || (savedMode === null && isSystemDark)) {
@@ -44,18 +44,19 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
 
-    // Initialize OneSignal
+    // 2. Initialize OneSignal with explicit scope and path
     try {
       OneSignal.init({
         appId: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
         allowLocalhostAsSecureOrigin: true,
+        // CRITICAL: Point to the merged service worker we created
         serviceWorkerPath: "sw.js",
         serviceWorkerParam: { scope: "/" },
         notifyButton: {
           enable: true,
         },
       }).then(() => {
-        console.log("OneSignal Initialized");
+        console.log("OneSignal Initialized Successfully");
         OneSignal.Slidedown.promptPush();
       });
     } catch (error) {
