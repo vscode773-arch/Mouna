@@ -33,6 +33,16 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
     const [showScanner, setShowScanner] = useState(false);
     const fileInputRef = useRef(null);
     const scannerRef = useRef(null);
+    const barcodeInputRef = useRef(null);
+
+    // Auto-focus barcode input when modal opens to support external scanners
+    useEffect(() => {
+        if (isOpen && barcodeInputRef.current) {
+            setTimeout(() => {
+                barcodeInputRef.current.focus();
+            }, 300); // 300ms delay to wait for animation
+        }
+    }, [isOpen]);
 
     // Ref for the scanner container
     useEffect(() => {
@@ -217,6 +227,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                                 <div className="flex gap-2">
                                     <input
                                         type="text"
+                                        ref={barcodeInputRef}
                                         value={formData.barcode}
                                         onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                                         onBlur={(e) => fetchProductFromGlobalDB(e.target.value)}
