@@ -49,6 +49,8 @@ export default function App() {
       OneSignal.init({
         appId: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
         allowLocalhostAsSecureOrigin: true,
+        serviceWorkerPath: "sw.js",
+        serviceWorkerParam: { scope: "/" },
         notifyButton: {
           enable: true,
         },
