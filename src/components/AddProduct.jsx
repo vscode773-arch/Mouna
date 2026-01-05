@@ -54,15 +54,22 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                 scannerRef.current = html5QrCode;
 
                 const config = {
-                    fps: 30,
-                    qrbox: { width: 300, height: 200 },
-                    experimentalFeatures: {
-                        useBarCodeDetectorIfSupported: true
-                    }
+                    fps: 30, // MAX FPS
+                    qrbox: { width: 300, height: 250 }, // Larger scan area
+                    aspectRatio: 1.0,
+                    disableFlip: false,
+                };
+
+                // Advanced Camera Constraints for HD & Focus
+                const cameraConfig = {
+                    facingMode: "environment",
+                    width: { min: 640, ideal: 1280, max: 1920 }, // Force HD/FHD if available
+                    height: { min: 480, ideal: 720, max: 1080 },
+                    focusMode: "continuous" // Try to force auto-focus
                 };
 
                 html5QrCode.start(
-                    { facingMode: "environment" },
+                    cameraConfig,
                     config,
                     (decodedText) => {
                         playScanSound();
@@ -268,16 +275,37 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                                 </div>
 
                                 {/* Camera Viewfinder */}
+                                {/* Scanner Container */}
                                 {showScanner && (
-                                    <div className="mt-4 overflow-hidden rounded-xl border-2 border-emerald-500 relative bg-black">
-                                        <div id="reader" className="w-full"></div>
+                                    <div className="mt-4 relative rounded-2xl overflow-hidden bg-black shadow-2xl">
+                                        {/* The Camera View */}
+                                        <div id="reader" className="w-full h-64 bg-black"></div>
+
+                                        {/* Laser Line Overlay */}
+                                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                                            {/* Red Line */}
+                                            <div className="w-[90%] h-0.5 bg-red-600 shadow-[0_0_10px_2px_rgba(220,38,38,0.8)] animate-pulse relative z-10"></div>
+
+                                            {/* Scan Area Borders (Optional Visuals) */}
+                                            <div className="absolute w-64 h-40 border-2 border-white/30 rounded-lg"></div>
+                                            <div className="absolute w-64 h-40 border-2 border-emerald-500/50 rounded-lg animate-ping opacity-20"></div>
+                                        </div>
+
+                                        {/* Close Button */}
                                         <button
                                             type="button"
                                             onClick={() => setShowScanner(false)}
-                                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full z-10"
+                                            className="absolute top-3 right-3 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full z-20 backdrop-blur-sm transition-all"
                                         >
-                                            <X className="w-4 h-4" />
+                                            <X className="w-5 h-5" />
                                         </button>
+
+                                        {/* Instructions Overlay */}
+                                        <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none">
+                                            <span className="text-xs text-white/80 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+                                                وجه الخط الأحمر على الباركود
+                                            </span>
+                                        </div>
                                     </div>
                                 )}
                             </div>
