@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import OneSignal from 'react-onesignal';
 import { User, Bell, Shield, Database, Moon, Sun, Smartphone, LogOut, Save, Layers, Upload, Download, RefreshCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import UserManagementModal from '../components/UserManagementModal';
@@ -59,6 +60,18 @@ export default function Settings() {
         const checked = e.target.checked;
         setNotifications(checked);
         localStorage.setItem('notifications', checked);
+        if (checked) {
+            enableNotificationsManual();
+        }
+    };
+
+    const enableNotificationsManual = async () => {
+        try {
+            await OneSignal.Slidedown.promptPush();
+        } catch (error) {
+            console.error("Error enabling notifications:", error);
+            alert("حدث خطأ أثناء طلب الإذن. الرجاء المحاولة مرة أخرى.");
+        }
     };
 
     const handleLogout = () => {
@@ -202,8 +215,6 @@ export default function Settings() {
                 });
             } finally {
                 setIsRestoring(false);
-                // Do NOT close confirm dialog automatically here if success, because we want user to see success msg
-                // Only if it was the confirmation prompt we are handling
             }
         };
         reader.readAsText(file);
@@ -292,10 +303,18 @@ export default function Settings() {
                             <p className="text-xs text-slate-500">تلقي تنبيهات عن المنتجات القريبة من الانتهاء</p>
                         </div>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked={notifications} onChange={toggleNotifications} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
-                    </label>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={enableNotificationsManual}
+                            className="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                            تفعيل
+                        </button>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked={notifications} onChange={toggleNotifications} className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
                 </div>
             </Section>
 
