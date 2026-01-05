@@ -539,7 +539,11 @@ app.post('/api/restore', async (req, res) => {
     }
 });
 
-// Start Server
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+// Start Server (Only if not in Vercel environment or if called directly)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+    });
+}
+
+export default app;
