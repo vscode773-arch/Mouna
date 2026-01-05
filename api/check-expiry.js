@@ -34,18 +34,30 @@ export default async function handler(req, res) {
             return res.status(200).json({ message: "Found products but missing API key", count });
         }
 
+        const { player_id } = req.query; // Get ID from URL if provided
+
+        const notificationBody = {
+            app_id: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
+            contents: { "en": message, "ar": message },
+            headings: { "en": "تنبيه انتهاء الصلاحية", "ar": "تنبيه انتهاء الصلاحية" }
+        };
+
+        if (player_id) {
+            // Direct Target (Test Mode)
+            console.log(`Targeting specific player: ${player_id}`);
+            notificationBody.include_player_ids = [player_id];
+        } else {
+            // Broadcast Mode
+            notificationBody.included_segments = ["Total Subscriptions"];
+        }
+
         const oneSignalResponse = await fetch("https://onesignal.com/api/v1/notifications", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Basic ${process.env.ONESIGNAL_REST_API_KEY}`
             },
-            body: JSON.stringify({
-                app_id: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
-                contents: { "en": message, "ar": message },
-                headings: { "en": "تنبيه انتهاء الصلاحية", "ar": "تنبيه انتهاء الصلاحية" },
-                included_segments: ["Total Subscriptions"] // أقوى استهداف للجميع
-            })
+            body: JSON.stringify(notificationBody)
         });
 
         const result = await oneSignalResponse.json();
