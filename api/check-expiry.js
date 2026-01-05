@@ -44,11 +44,18 @@ export default async function handler(req, res) {
                 app_id: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
                 contents: { "en": message, "ar": message },
                 headings: { "en": "تنبيه انتهاء الصلاحية", "ar": "تنبيه انتهاء الصلاحية" },
-                included_segments: ["All"] // Sends to all subscribed devices
+                included_segments: ["Total Subscriptions"] // أقوى استهداف للجميع
             })
         });
 
         const result = await oneSignalResponse.json();
+
+        // Check for specific OneSignal errors
+        if (result.errors) {
+            console.error("OneSignal API Error:", result.errors);
+            return res.status(500).json({ error: "OneSignal Failed", details: result.errors });
+        }
+
 
         res.status(200).json({
             success: true,
