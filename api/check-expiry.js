@@ -28,27 +28,9 @@ export default async function handler(req, res) {
         const message = `⚠️ تنبيه: لديكم ${count} منتجات ستنتهي صلاحيتها قريباً! تفقد المخزون الآن.`;
 
         // 3. Send to OneSignal
-        // NOTE: This requires ONESIGNAL_REST_API_KEY environment variable in Vercel
         if (!process.env.ONESIGNAL_REST_API_KEY) {
             console.warn("Skipping OneSignal: No REST API Key found");
             return res.status(200).json({ message: "Found products but missing API key", count });
-        }
-
-        const { player_id } = req.query; // Get ID from URL if provided
-
-        const notificationBody = {
-            app_id: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
-            contents: { "en": message, "ar": message },
-            headings: { "en": "تنبيه انتهاء الصلاحية", "ar": "تنبيه انتهاء الصلاحية" }
-        };
-
-        if (player_id) {
-            // Direct Target (Test Mode)
-            console.log(`Targeting specific player: ${player_id}`);
-            notificationBody.include_player_ids = [player_id];
-        } else {
-            // Broadcast Mode
-            notificationBody.included_segments = ["Total Subscriptions"];
         }
 
         const oneSignalResponse = await fetch("https://onesignal.com/api/v1/notifications", {
@@ -57,7 +39,12 @@ export default async function handler(req, res) {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Basic ${process.env.ONESIGNAL_REST_API_KEY}`
             },
-            body: JSON.stringify(notificationBody)
+            body: JSON.stringify({
+                app_id: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
+                contents: { "en": message, "ar": message },
+                headings: { "en": "تنبيه انتهاء الصلاحية", "ar": "تنبيه انتهاء الصلاحية" },
+                included_segments: ["Total Subscriptions"] // Send to everyone subscribed
+            })
         });
 
         const result = await oneSignalResponse.json();
@@ -68,14 +55,11 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: "OneSignal Failed", details: result.errors });
         }
 
-
         res.status(200).json({
             success: true,
             productsFound: count,
             notificationSent: true,
-            oneSignalId: result.id,
-            recipients: result.recipients, // كم عدد الأشخاص الذين تم الإرسال لهم؟
-            full_response: result // تفاصيل الرد كاملة
+            oneSignalId: result.id
         });
 
     } catch (error) {

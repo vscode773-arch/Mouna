@@ -52,11 +52,8 @@ export default function App() {
         // CRITICAL: Point to the merged service worker we created
         serviceWorkerPath: "sw.js",
         serviceWorkerParam: { scope: "/" },
-        notifyButton: {
-          enable: true,
-        },
       }).then(() => {
-        console.log("OneSignal Initialized Successfully");
+        // Automatically ask for permission if not granted
         OneSignal.Slidedown.promptPush();
       });
     } catch (error) {
