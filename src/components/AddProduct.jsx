@@ -52,13 +52,14 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData, startW
     }, [isOpen, startWithScanner]);
 
     // Auto-focus barcode input when modal opens to support external scanners
+    // BUT skip this if we are starting the camera automatically (to avoid keyboard covering camera)
     useEffect(() => {
-        if (isOpen && barcodeInputRef.current) {
+        if (isOpen && barcodeInputRef.current && !startWithScanner) {
             setTimeout(() => {
                 barcodeInputRef.current.focus();
             }, 300); // 300ms delay to wait for animation
         }
-    }, [isOpen]);
+    }, [isOpen, startWithScanner]);
 
     // Ref for the scanner container
     useEffect(() => {
