@@ -18,6 +18,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
     });
 
     // Use useLayoutEffect to ensure state updates BEFORE paint
+    // Force Update V4: Fix Data Loading Lag
     React.useLayoutEffect(() => {
         if (isOpen && initialData) {
             console.log("Force loading initial data:", initialData);
