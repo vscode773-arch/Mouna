@@ -6,7 +6,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { API_URL } from '../config';
 import { playScanSound } from '../lib/utils';
 
-export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
+export default function AddProduct({ isOpen, onClose, onAdd, initialData, startWithScanner }) {
     const [formData, setFormData] = useState({
         barcode: initialData?.barcode || '',
         name: initialData?.name || '',
@@ -43,6 +43,13 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
     const fileInputRef = useRef(null);
     const scannerRef = useRef(null);
     const barcodeInputRef = useRef(null);
+
+    // Auto-open scanner if requested via prop
+    useEffect(() => {
+        if (isOpen && startWithScanner) {
+            setTimeout(() => setShowScanner(true), 300); // Small delay for modal animation
+        }
+    }, [isOpen, startWithScanner]);
 
     // Auto-focus barcode input when modal opens to support external scanners
     useEffect(() => {

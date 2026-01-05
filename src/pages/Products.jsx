@@ -38,10 +38,22 @@ export default function Products() {
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm]);
 
+    const [startWithScanner, setStartWithScanner] = useState(false);
+
     useEffect(() => {
         if (location.state?.openAddModal) {
             setInitialAddData(location.state.productData);
             setIsAddModalOpen(true);
+            setStartWithScanner(false); // Default logic
+            window.history.replaceState({}, document.title);
+        }
+
+        // Check for direct scanner request (from FAB)
+        if (location.state?.openAddWithScanner) {
+            setInitialAddData(null); // Fresh start
+            setIsAddModalOpen(true);  // Open Modal
+            setStartWithScanner(true); // Tell modal to auto-open camera
+            // Clear state so it doesn't reopen on reload
             window.history.replaceState({}, document.title);
         }
     }, [location]);
@@ -300,6 +312,7 @@ export default function Products() {
                 }}
                 onAdd={handleAddProduct}
                 initialData={initialAddData}
+                startWithScanner={startWithScanner}
             />
 
             {editingProduct && (

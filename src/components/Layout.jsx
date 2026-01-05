@@ -110,14 +110,17 @@ export default function Layout() {
                         if (item.isFab) {
                             return (
                                 <div key={item.path} className="relative -top-6">
-                                    <NavLink to={item.path}>
+                                    <div
+                                        onClick={() => navigate('/products', { state: { openAddWithScanner: true } })}
+                                        className="cursor-pointer"
+                                    >
                                         <motion.div
                                             whileTap={{ scale: 0.9 }}
                                             className="w-14 h-14 bg-emerald-500 rounded-full shadow-lg shadow-emerald-500/40 flex items-center justify-center text-white"
                                         >
                                             <item.icon className="w-6 h-6" />
                                         </motion.div>
-                                    </NavLink>
+                                    </div>
                                 </div>
                             )
                         }
