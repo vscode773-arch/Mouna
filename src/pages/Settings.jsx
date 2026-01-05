@@ -90,26 +90,33 @@ export default function Settings() {
     };
 
     const enableNotificationsManual = async () => {
-        alert("✅ جاري تفعيل الإشعارات...");
+        alert("🔄 جاري إصلاح الاتصال وتسجيل الجهاز...");
 
         try {
             window.OneSignal = window.OneSignal || [];
 
-            // 1. Check direct permission first
-            if (Notification.permission === 'granted') {
-                alert("الإشعارات مفعلة بالفعل في المتصفح! ✅");
-            } else if (Notification.permission === 'denied') {
-                alert("⛔ الإشعارات محظورة. يجب تفعيلها من إعدادات المتصفح للموقع.");
-                return;
+            // 1. Force Login as Admin (Identifies the user)
+            if (user?.username) {
+                console.log("Logging in as:", user.username);
+                await OneSignal.login(user.username);
             }
 
-            // 2. Try Prompt using native push
-            window.OneSignal.push(function () {
-                OneSignal.Slidedown.promptPush({ force: true });
-                OneSignal.User.PushSubscription.optIn();
-            });
+            // 2. Force Opt-In
+            await OneSignal.User.PushSubscription.optIn();
 
-            alert("تم إرسال الطلب. انظر لأعلى الشاشة للموافقة!");
+            // 3. Retry Prompt
+            await OneSignal.Slidedown.promptPush({ force: true });
+
+            // Check status after 2 seconds
+            setTimeout(() => {
+                const id = OneSignal.User.PushSubscription.id;
+                if (id) {
+                    alert(`✅ تم التسجيل بنجاح!\nID: ${id}`);
+                    setSubscriptionId(id);
+                } else {
+                    alert("⚠️ تم إرسال الطلب، لكن لم نحصل على ID بعد.\nجرب تحديث الصفحة بعد قليل.");
+                }
+            }, 2000);
 
         } catch (error) {
             console.error(error);
@@ -352,7 +359,7 @@ export default function Settings() {
                             onClick={enableNotificationsManual}
                             className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors font-bold shadow-sm"
                         >
-                            {subscriptionId ? "إعادة تفعيل" : "تفعيل الإشعارات (جديد) 🔔"}
+                            {subscriptionId ? "إعادة تفعيل" : "إصلاح الاتصال 🔄"}
                         </button>
 
                         <div className="text-[10px] text-gray-500 dir-ltr text-right">
