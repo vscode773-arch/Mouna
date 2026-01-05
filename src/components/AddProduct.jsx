@@ -270,7 +270,12 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Force Re-render with key ensures inputs act as fresh instances */}
+                        <form
+                            key={initialData?.barcode || (isOpen ? 'open' : 'closed')}
+                            onSubmit={handleSubmit}
+                            className="space-y-4"
+                        >
                             {/* Barcode Search */}
                             <div>
                                 <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 block">الباركود</label>
