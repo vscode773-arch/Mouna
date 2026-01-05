@@ -61,7 +61,9 @@ export default async function handler(req, res) {
             success: true,
             productsFound: count,
             notificationSent: true,
-            oneSignalId: result.id
+            oneSignalId: result.id,
+            recipients: result.recipients, // كم عدد الأشخاص الذين تم الإرسال لهم؟
+            full_response: result // تفاصيل الرد كاملة
         });
 
     } catch (error) {
