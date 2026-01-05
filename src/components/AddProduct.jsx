@@ -303,7 +303,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                                         {/* Instructions Overlay */}
                                         <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none">
                                             <span className="text-xs text-white/80 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
-                                                وجه الخط الأحمر على الباركود
+                                                ماسح متطور V2 🚀
                                             </span>
                                         </div>
                                     </div>
