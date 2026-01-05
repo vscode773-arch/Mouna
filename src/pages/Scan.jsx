@@ -19,16 +19,21 @@ export default function ScanPage() {
                 html5QrCode = new Html5Qrcode("reader");
                 scannerRef.current = html5QrCode;
 
+                // Safely Request Camera with HD preference
+                const cameraConfig = {
+                    facingMode: "environment"
+                    // Library will pick best resolution automatically
+                };
+
                 const config = {
                     fps: 30,
-                    qrbox: { width: 300, height: 200 },
-                    experimentalFeatures: {
-                        useBarCodeDetectorIfSupported: true
-                    }
+                    qrbox: { width: 300, height: 250 }, // Consistent larger size
+                    aspectRatio: 1.0,
+                    disableFlip: false,
                 };
 
                 html5QrCode.start(
-                    { facingMode: "environment" },
+                    cameraConfig,
                     config,
                     (decodedText) => {
                         playScanSound();
@@ -42,6 +47,7 @@ export default function ScanPage() {
                     }
                 ).catch(err => {
                     console.error("Error starting scanner", err);
+                    alert("فشل تشغيل الكاميرا: " + err);
                 });
             }, 100);
             return () => {
@@ -54,29 +60,24 @@ export default function ScanPage() {
     }, [isScanning]);
 
     const handleScanSuccess = async (barcode) => {
-        // 1. First, check our LOCAL database for the product (user's custom data)
+        // 1. Try Local Server First (Inventory & Memory)
         try {
-            // Optimized: Fetch only the specific barcode instead of all products
             const localResponse = await fetch(`${API_URL}/api/products?barcode=${barcode}`);
             if (localResponse.ok) {
-                const responseJson = await localResponse.json();
-                const products = responseJson.data || responseJson; // Handle both old (array) and new (paginated) formats for safety
+                const data = await localResponse.json();
+                const foundProduct = data.data?.[0]; // Get first match
 
-                // Safety check: ensure exact match
-                const existingProduct = Array.isArray(products)
-                    ? products.find(p => p.barcode === barcode)
-                    : null;
-
-                if (existingProduct) {
+                if (foundProduct) {
+                    console.log("Scan Page: Found in local memory/inventory:", foundProduct.name);
                     setScannedData({
                         barcode: barcode,
-                        name: existingProduct.name,
-                        image: existingProduct.image || 'https://via.placeholder.com/300',
-                        quantity: existingProduct.quantity, // Add quantity
-                        exists: true
+                        name: foundProduct.name,
+                        image: foundProduct.image || 'https://via.placeholder.com/300',
+                        quantity: foundProduct.id ? foundProduct.quantity : 0, // 0 if from memory
+                        exists: !!foundProduct.id // True if in inventory, False if just memory
                     });
                     setIsScanning(false);
-                    return; // Stop here, we found it locally!
+                    return;
                 }
             }
         } catch (error) {
@@ -93,7 +94,7 @@ export default function ScanPage() {
                     barcode: barcode,
                     name: data.product.product_name_ar || data.product.product_name || 'منتج غير معروف',
                     image: data.product.image_url || 'https://via.placeholder.com/300',
-                    exists: true
+                    exists: false
                 });
             } else {
                 setScannedData({
@@ -122,26 +123,34 @@ export default function ScanPage() {
     return (
         <div className="h-[calc(100vh-8rem)] flex flex-col relative overflow-hidden bg-black rounded-3xl shadow-2xl">
             {/* Header Controls */}
-            <div className="absolute top-0 left-0 right-0 p-4 z-20 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent">
-                <button onClick={() => navigate(-1)} className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors">
+            <div className="absolute top-0 left-0 right-0 p-4 z-20 flex justify-between items-center">
+                <button onClick={() => navigate(-1)} className="p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-colors">
                     <X className="w-6 h-6" />
                 </button>
-                <div className="flex gap-4">
-                    {/* Additional controls can be re-enabled if library supports torch */}
-                </div>
             </div>
 
             {/* Main Scanner Area */}
             <div className="flex-1 relative flex items-center justify-center bg-black">
                 {isScanning ? (
                     <div className="w-full h-full relative">
-                        <div id="reader" className="w-full h-full"></div>
-                        {/* Overlay Styling */}
-                        <div className="absolute inset-0 pointer-events-none border-[50px] border-black/50">
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-emerald-500 rounded-lg box-border opacity-70"></div>
+                        {/* The Camera View - Full Height */}
+                        <div id="reader" className="w-full h-full bg-black"></div>
+
+                        {/* Laser Line Overlay */}
+                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                            {/* Red Line */}
+                            <div className="w-[85%] h-0.5 bg-red-600 shadow-[0_0_15px_3px_rgba(220,38,38,0.9)] animate-pulse relative z-10"></div>
+
+                            {/* Visual Borders */}
+                            <div className="absolute w-72 h-48 border-2 border-white/20 rounded-2xl"></div>
+                            <div className="absolute w-72 h-48 border-2 border-emerald-500/40 rounded-2xl animate-ping opacity-10"></div>
                         </div>
-                        <div className="absolute bottom-10 left-0 right-0 text-center text-white z-30">
-                            <p className="bg-black/50 inline-block px-4 py-2 rounded-full backdrop-blur-sm">وجه الكاميرا نحو الباركود</p>
+
+                        {/* Instructions Overlay */}
+                        <div className="absolute bottom-10 left-0 right-0 text-center text-white z-30 pointer-events-none">
+                            <span className="text-sm bg-black/60 px-4 py-2 rounded-full backdrop-blur-md border border-white/10 font-bold text-emerald-400">
+                                ماسح متطور V2 🚀
+                            </span>
                         </div>
                     </div>
                 ) : (
