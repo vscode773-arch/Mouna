@@ -17,15 +17,23 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
         image: initialData?.image || ''
     });
 
-    useEffect(() => {
-        if (initialData) {
+    // Use useLayoutEffect to ensure state updates BEFORE paint
+    React.useLayoutEffect(() => {
+        if (isOpen && initialData) {
+            console.log("Force loading initial data:", initialData);
             setFormData(prev => ({
                 ...prev,
-                ...initialData
+                barcode: initialData.barcode || prev.barcode,
+                name: initialData.name || prev.name,
+                image: initialData.image || prev.image,
+                category: initialData.category || 'عام',
+                // Don't overwrite other fields unless necessary
+                expiry: prev.expiry,
+                quantity: prev.quantity
             }));
         } else if (!isOpen) {
             // Reset when closed
-            setFormData({ barcode: '', name: '', category: 'عام', expiry: format(new Date(), 'yyyy-MM-dd'), department: '', image: '' });
+            setFormData({ barcode: '', name: '', category: 'عام', expiry: format(new Date(), 'yyyy-MM-dd'), department: '', image: '', quantity: 1 });
         }
     }, [initialData, isOpen]);
     const [loading, setLoading] = useState(false);
