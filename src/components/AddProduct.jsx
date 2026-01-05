@@ -279,43 +279,60 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                                 {/* Camera Viewfinder */}
                                 {/* Scanner Container */}
                                 {showScanner && (
-                                    <div className="mt-4 relative rounded-2xl overflow-hidden bg-black shadow-2xl">
-                                        {/* Force Video to Cover */}
+                                    <div className="mt-4 relative rounded-xl overflow-hidden bg-black shadow-2xl aspect-[3/4] max-h-[400px]">
+                                        {/* CSS to force Video Fill */}
                                         <style>{`
+                                            #reader {
+                                                width: 100%;
+                                                height: 100%;
+                                            }
                                             #reader video {
                                                 object-fit: cover !important;
                                                 width: 100% !important;
                                                 height: 100% !important;
-                                                border-radius: 1rem;
                                             }
                                         `}</style>
 
                                         {/* The Camera View */}
-                                        <div id="reader" className="w-full h-64 bg-black"></div>
+                                        <div id="reader" className="w-full h-full bg-black"></div>
 
-                                        {/* Laser Line Overlay */}
-                                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                                            {/* Red Line */}
-                                            <div className="w-[90%] h-0.5 bg-red-600 shadow-[0_0_10px_2px_rgba(220,38,38,0.8)] animate-pulse relative z-10"></div>
+                                        {/* Dark Overlay with Transparent Center Rect */}
+                                        <div className="absolute inset-0 pointer-events-none z-10">
+                                            {/* Top Dark */}
+                                            <div className="absolute top-0 left-0 right-0 h-[25%] bg-black/60"></div>
+                                            {/* Bottom Dark */}
+                                            <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-black/60"></div>
+                                            {/* Left Dark */}
+                                            <div className="absolute top-[25%] bottom-[35%] left-0 w-[10%] bg-black/60"></div>
+                                            {/* Right Dark */}
+                                            <div className="absolute top-[25%] bottom-[35%] right-0 w-[10%] bg-black/60"></div>
 
-                                            {/* Scan Area Borders (Optional Visuals) */}
-                                            <div className="absolute w-64 h-40 border-2 border-white/30 rounded-lg"></div>
-                                            <div className="absolute w-64 h-40 border-2 border-emerald-500/50 rounded-lg animate-ping opacity-20"></div>
+                                            {/* Center Scan Area Frame */}
+                                            <div className="absolute top-[25%] bottom-[35%] left-[10%] right-[10%] border-2 border-white/50 rounded-lg shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
+                                                {/* Corner Markers */}
+                                                <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-emerald-500 -mt-1 -ml-1"></div>
+                                                <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-emerald-500 -mt-1 -mr-1"></div>
+                                                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-emerald-500 -mb-1 -ml-1"></div>
+                                                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-emerald-500 -mb-1 -mr-1"></div>
+
+                                                {/* Laser Line */}
+                                                <div className="absolute top-1/2 left-2 right-2 h-0.5 bg-red-600 shadow-[0_0_10px_red] animate-pulse"></div>
+                                            </div>
                                         </div>
 
                                         {/* Close Button */}
                                         <button
                                             type="button"
                                             onClick={() => setShowScanner(false)}
-                                            className="absolute top-3 right-3 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full z-20 backdrop-blur-sm transition-all"
+                                            className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full z-20 backdrop-blur-md"
                                         >
-                                            <X className="w-5 h-5" />
+                                            <X className="w-6 h-6" />
                                         </button>
 
-                                        {/* Instructions Overlay */}
-                                        <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none">
-                                            <span className="text-xs text-white/80 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
-                                                ماسح متطور V2 🚀
+                                        {/* Instructions */}
+                                        <div className="absolute bottom-8 left-0 right-0 text-center z-20 pointer-events-none">
+                                            <span className="text-white/90 text-sm font-medium bg-black/50 px-4 py-2 rounded-full backdrop-blur-md">
+                                                ضع الباركود داخل الإطار
                                             </span>
                                         </div>
                                     </div>
