@@ -125,8 +125,8 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                     setFormData(prev => ({
                         ...prev,
                         name: foundProduct.name,
-                        category: foundProduct.category || prev.category,
-                        image: foundProduct.image || prev.image,
+                        category: foundProduct.category || prev.category, // Keep category default if not set
+                        image: foundProduct.image || '', // Clear image if not found in memory
                         // If it came from memory (id is null), we reset quantity to 1
                         // If it exists in inventory (id is present), maybe user wants to edit/add more?
                         // Let's assume AddProduct is for "Adding new stock", so keep defaults on expiry/qty.
@@ -145,8 +145,8 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                 const product = data.product;
                 setFormData(prev => ({
                     ...prev,
-                    name: product.product_name_ar || product.product_name || prev.name,
-                    image: product.image_url || prev.image,
+                    name: product.product_name_ar || product.product_name || '', // Use empty if no name found, don't keep old
+                    image: product.image_url || '', // Clear image if global DB has none
                 }));
             }
         } catch (error) {
