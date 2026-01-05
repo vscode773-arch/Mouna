@@ -18,6 +18,9 @@ export default function Settings() {
         return savedMode === 'true' || (savedMode === null && isSystemDark);
     });
 
+    // OneSignal Subscription State
+    const [subscriptionId, setSubscriptionId] = useState(null);
+
     React.useEffect(() => {
         if (darkMode) {
             document.documentElement.classList.add('dark');
@@ -27,6 +30,27 @@ export default function Settings() {
             localStorage.setItem('darkMode', 'false');
         }
     }, [darkMode]);
+
+    React.useEffect(() => {
+        // Check OneSignal Subscription Status
+        if (window.OneSignal) {
+            const checkSub = () => {
+                try {
+                    const id = window.OneSignal.User.PushSubscription.id;
+                    setSubscriptionId(id);
+                } catch (e) { console.error(e) }
+            }
+
+            // Listener
+            window.OneSignal.User.PushSubscription.addEventListener("change", (e) => {
+                setSubscriptionId(e.current.id);
+            });
+
+            // Initial check
+            checkSub();
+        }
+    }, []);
+
     const [notifications, setNotifications] = useState(() => localStorage.getItem('notifications') === 'true');
 
     // Modals State
@@ -69,7 +93,6 @@ export default function Settings() {
         alert("✅ جاري تفعيل الإشعارات...");
 
         try {
-            // الطريقة المباشرة لضمان العمل
             window.OneSignal = window.OneSignal || [];
 
             // 1. Check direct permission first
@@ -323,13 +346,27 @@ export default function Settings() {
                             <p className="text-xs text-slate-500">تلقي تنبيهات عن المنتجات القريبة من الانتهاء</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex flex-col items-end gap-2">
                         <button
                             onClick={enableNotificationsManual}
                             className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors font-bold shadow-sm"
                         >
-                            تفعيل الإشعارات (جديد) 🔔
+                            {subscriptionId ? "إعادة تفعيل" : "تفعيل الإشعارات (جديد) 🔔"}
                         </button>
+
+                        <div className="text-[10px] text-gray-500 dir-ltr text-right">
+                            {subscriptionId ? (
+                                <span className="text-emerald-600 font-bold">
+                                    ✅ متصل (ID: {subscriptionId.substring(0, 8)}...)
+                                </span>
+                            ) : (
+                                <span className="text-red-500 font-bold">
+                                    ❌ غير مسجل في السيرفر
+                                </span>
+                            )}
+                        </div>
+
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" checked={notifications} onChange={toggleNotifications} className="sr-only peer" />
                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
