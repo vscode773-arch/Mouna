@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Scan, X, Zap, Image as ImageIcon, RotateCcw, CheckCircle } from 'lucide-react';
+import { X, RotateCcw, CheckCircle, Loader2 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
 import { playScanSound } from '../lib/utils';
@@ -9,82 +9,120 @@ import { API_URL } from '../config';
 export default function ScanPage() {
     const navigate = useNavigate();
     const [isScanning, setIsScanning] = useState(true);
+    const [isLoading, setIsLoading] = useState(true); // New Loading State
     const [scannedData, setScannedData] = useState(null);
     const scannerRef = useRef(null);
 
+    // CSS to force clean full-screen video and hide library overlays
+    const globalScannerStyles = `
+        #reader {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+            overflow: hidden !important;
+        }
+        #reader video {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0 !important;
+        }
+        /* HIDE LIBRARY OVERLAYS causing "Ghost Frames" */
+        #reader canvas, 
+        #reader div[style*="position: absolute"] { 
+            display: none !important; 
+        }
+    `;
+
     useEffect(() => {
         let html5QrCode;
-        if (isScanning) {
-            const timer = setTimeout(() => {
+
+        const startScanner = async () => {
+            // Wait for DOM
+            await new Promise(r => setTimeout(r, 100));
+
+            try {
+                if (!document.getElementById("reader")) return;
+
                 html5QrCode = new Html5Qrcode("reader");
                 scannerRef.current = html5QrCode;
 
-                // Safely Request Camera with HD preference
-                const cameraConfig = {
-                    facingMode: "environment"
-                    // Library will pick best resolution automatically
-                };
-
                 const config = {
                     fps: 30,
-                    qrbox: { width: 300, height: 250 }, // Consistent larger size
+                    qrbox: { width: 250, height: 250 }, // Logical box only
                     aspectRatio: 1.0,
                     disableFlip: false,
                 };
 
-                html5QrCode.start(
+                // HD Configuration
+                const cameraConfig = {
+                    facingMode: "environment"
+                };
+
+                await html5QrCode.start(
                     cameraConfig,
                     config,
                     (decodedText) => {
                         playScanSound();
                         handleScanSuccess(decodedText);
+                        // Stop scanning immediately after success
                         if (html5QrCode.isScanning) {
-                            html5QrCode.stop().then(() => html5QrCode.clear()).catch(console.error);
+                            html5QrCode.stop().catch(console.error);
                         }
                     },
                     (errorMessage) => {
-                        // ignore
+                        // ignore failures
                     }
-                ).catch(err => {
-                    console.error("Error starting scanner", err);
-                    alert("فشل تشغيل الكاميرا: " + err);
-                });
-            }, 100);
-            return () => {
-                clearTimeout(timer);
-                if (scannerRef.current && scannerRef.current.isScanning) {
-                    scannerRef.current.stop().then(() => scannerRef.current.clear()).catch(console.error);
-                }
-            };
+                );
+
+                setIsLoading(false); // Camera is ready!
+
+            } catch (err) {
+                console.error("Scanner Error:", err);
+                setIsLoading(false);
+                alert("تعذر تشغيل الكاميرا. تأكد من الصلاحيات.");
+            }
+        };
+
+        if (isScanning) {
+            startScanner();
         }
+
+        return () => {
+            if (scannerRef.current && scannerRef.current.isScanning) {
+                scannerRef.current.stop().then(() => scannerRef.current.clear()).catch(() => { });
+            }
+        };
     }, [isScanning]);
 
     const handleScanSuccess = async (barcode) => {
+        setIsScanning(false);
+        setIsLoading(true); // Show loading while fetching data
+
         // 1. Try Local Server First (Inventory & Memory)
         try {
             const localResponse = await fetch(`${API_URL}/api/products?barcode=${barcode}`);
             if (localResponse.ok) {
                 const data = await localResponse.json();
-                const foundProduct = data.data?.[0]; // Get first match
+                const foundProduct = data.data?.[0];
 
                 if (foundProduct) {
-                    console.log("Scan Page: Found in local memory/inventory:", foundProduct.name);
                     setScannedData({
                         barcode: barcode,
                         name: foundProduct.name,
                         image: foundProduct.image || 'https://via.placeholder.com/300',
-                        quantity: foundProduct.id ? foundProduct.quantity : 0, // 0 if from memory
-                        exists: !!foundProduct.id // True if in inventory, False if just memory
+                        quantity: foundProduct.id ? foundProduct.quantity : 0,
+                        exists: !!foundProduct.id
                     });
-                    setIsScanning(false);
+                    setIsLoading(false);
                     return;
                 }
             }
         } catch (error) {
-            console.error("Failed to check local DB", error);
+            console.error("Local DB Error", error);
         }
 
-        // 2. If not found locally, fetch from OpenFoodFacts
+        // 2. Global Fallback
         try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
             const data = await response.json();
@@ -112,105 +150,136 @@ export default function ScanPage() {
                 exists: false
             });
         }
-        setIsScanning(false);
+        setIsLoading(false);
     };
 
     const resetScan = () => {
         setScannedData(null);
         setIsScanning(true);
+        setIsLoading(true);
     };
 
     return (
-        <div className="h-[calc(100vh-8rem)] flex flex-col relative overflow-hidden bg-black rounded-3xl shadow-2xl">
-            {/* Header Controls */}
-            <div className="absolute top-0 left-0 right-0 p-4 z-20 flex justify-between items-center">
-                <button onClick={() => navigate(-1)} className="p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-colors">
+        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+            <style>{globalScannerStyles}</style>
+
+            {/* Header Controls (Absolute Top) */}
+            <div className="absolute top-0 left-0 right-0 p-4 z-30 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+                <button onClick={() => navigate(-1)} className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all">
                     <X className="w-6 h-6" />
                 </button>
             </div>
 
-            {/* Main Scanner Area */}
-            <div className="flex-1 relative flex items-center justify-center bg-black">
+            {/* Main Content */}
+            <div className="flex-1 relative w-full h-full bg-black">
+
                 {isScanning ? (
-                    <div className="w-full h-full relative overflow-hidden bg-black">
-                        {/* The Camera View - specific styling to force video coverage */}
-                        <div
-                            id="reader"
-                            className="w-full h-full bg-black [&_video]:w-full [&_video]:h-full [&_video]:object-cover [&_video]:!relative"
-                        ></div>
-
-                        {/* Dark Overlay with Transparent Center Rect (Premium UI) */}
-                        <div className="absolute inset-0 pointer-events-none z-10">
-                            {/* Top Dark */}
-                            <div className="absolute top-0 left-0 right-0 h-[25%] bg-black/60 backdrop-blur-[1px]"></div>
-                            {/* Bottom Dark */}
-                            <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-black/60 backdrop-blur-[1px]"></div>
-                            {/* Left Dark */}
-                            <div className="absolute top-[25%] bottom-[35%] left-0 w-[10%] bg-black/60 backdrop-blur-[1px]"></div>
-                            {/* Right Dark */}
-                            <div className="absolute top-[25%] bottom-[35%] right-0 w-[10%] bg-black/60 backdrop-blur-[1px]"></div>
-
-                            {/* Center Scan Area Frame (No Border, just Corners) */}
-                            <div className="absolute top-[25%] bottom-[35%] left-[10%] right-[10%] shadow-[0_0_0_9999px_rgba(0,0,0,0.2)]">
-                                {/* Corner Markers */}
-                                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-500 -mt-1 -ml-1 rounded-tl-xl shadow-sm"></div>
-                                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-500 -mt-1 -mr-1 rounded-tr-xl shadow-sm"></div>
-                                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-500 -mb-1 -ml-1 rounded-bl-xl shadow-sm"></div>
-                                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-500 -mb-1 -mr-1 rounded-br-xl shadow-sm"></div>
-
-                                {/* Laser Line */}
-                                <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-red-500 shadow-[0_0_15px_3px_rgba(239,68,68,0.9)] animate-pulse"></div>
+                    <>
+                        {/* Loading Spinner (Centered) */}
+                        {isLoading && (
+                            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black text-white">
+                                <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-4" />
+                                <p className="text-emerald-500/80 font-medium">جاري تشغيل الكاميرا...</p>
                             </div>
-                        </div>
-
-                        {/* Instructions Overlay */}
-                        <div className="absolute bottom-10 left-0 right-0 text-center text-white z-30 pointer-events-none">
-                            <span className="text-sm bg-black/60 px-5 py-2 rounded-full backdrop-blur-md border border-white/10 font-bold text-emerald-400 shadow-xl">
-                                الماسح الذكي V2 🚀
-                            </span>
-                        </div>
-                    </div>
-                ) : (
-                    <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="w-full max-w-sm mx-4 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl text-center relative z-30"
-                    >
-                        <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle className="w-10 h-10 text-emerald-500" />
-                        </div>
-
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{scannedData?.name}</h3>
-                        <p className="text-slate-500 text-sm mb-2">{scannedData?.barcode}</p>
-                        {scannedData?.exists && scannedData?.quantity && (
-                            <p className="text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-500/10 inline-block px-3 py-1 rounded-full text-sm mb-4">
-                                الكمية المخزنة: {scannedData.quantity}
-                            </p>
                         )}
-                        <img src={scannedData?.image} alt="Product" className="w-full h-48 object-cover rounded-2xl mb-6 shadow-md bg-white" />
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <button onClick={resetScan} className="py-3 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
-                                <RotateCcw className="w-4 h-4" />
-                                <span>مسح جديد</span>
-                            </button>
-                            <button
-                                onClick={() => navigate('/products', {
-                                    state: {
-                                        openAddModal: true,
-                                        productData: {
-                                            barcode: scannedData.barcode,
-                                            name: scannedData.exists ? scannedData.name : '',
-                                            image: scannedData.exists ? scannedData.image : ''
-                                        }
-                                    }
-                                })}
-                                className="py-3 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/25"
-                            >
-                                إضافة للمخزون
-                            </button>
-                        </div>
-                    </motion.div>
+                        {/* Camera Element */}
+                        <div id="reader" className="w-full h-full absolute inset-0 bg-black"></div>
+
+                        {/* CUSTOM UI OVERLAY (Our clean frame) */}
+                        {!isLoading && (
+                            <div className="absolute inset-0 z-10 pointer-events-none">
+                                {/* Dark Background Shading */}
+                                <div className="absolute inset-0 bg-black/40"></div>
+
+                                {/* Masking: Clear Center Hole */}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-[75%] aspect-square max-w-sm relative">
+
+                                        {/* The Hole (Clip Path visualization via box-shadow hack) */}
+                                        <div className="absolute inset-0 rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"></div>
+
+                                        {/* Bright Corners */}
+                                        <div className="absolute top-0 left-0 w-10 h-10 border-t-[6px] border-l-[6px] border-emerald-500 rounded-tl-3xl -mt-1 -ml-1"></div>
+                                        <div className="absolute top-0 right-0 w-10 h-10 border-t-[6px] border-r-[6px] border-emerald-500 rounded-tr-3xl -mt-1 -mr-1"></div>
+                                        <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[6px] border-l-[6px] border-emerald-500 rounded-bl-3xl -mb-1 -ml-1"></div>
+                                        <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[6px] border-r-[6px] border-emerald-500 rounded-br-3xl -mb-1 -mr-1"></div>
+
+                                        {/* Laser Line */}
+                                        <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-red-500 shadow-[0_0_20px_4px_rgba(239,68,68,1)] animate-pulse"></div>
+                                    </div>
+                                </div>
+
+                                {/* Text Label */}
+                                <div className="absolute bottom-20 left-0 right-0 text-center">
+                                    <span className="inline-block px-6 py-2 bg-black/60 backdrop-blur-md rounded-full text-white/90 text-sm font-bold border border-white/10 shadow-xl">
+                                        ماسح ذكي V3 ⚡
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    /* Show Result Card */
+                    <div className="absolute inset-0 z-40 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl relative overflow-hidden"
+                        >
+                            {/* ... Result UI ... */}
+                            <div className="absolute top-0 left-0 right-0 h-32 bg-emerald-500/10 rounded-b-[100%] -mt-16"></div>
+
+                            <div className="relative z-10 flex flex-col items-center">
+                                <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mb-4 ring-4 ring-white dark:ring-slate-800 shadow-lg">
+                                    {isLoading ? (
+                                        <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+                                    ) : (
+                                        <CheckCircle className="w-10 h-10 text-emerald-500" />
+                                    )}
+                                </div>
+
+                                {isLoading ? (
+                                    <p className="text-lg font-medium animate-pulse">جاري البحث...</p>
+                                ) : (
+                                    <>
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 text-center">{scannedData?.name}</h3>
+                                        <p className="text-slate-500 text-sm mb-4 font-mono bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">{scannedData?.barcode}</p>
+
+                                        {scannedData?.exists && (
+                                            <div className="mb-4 text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-1.5 rounded-full text-sm font-bold border border-emerald-200">
+                                                متوفر في المخزون: {scannedData.quantity}
+                                            </div>
+                                        )}
+
+                                        <img src={scannedData?.image} alt="Product" className="w-32 h-32 object-contain bg-white rounded-xl mb-6 shadow-inner p-2 border border-slate-100" />
+
+                                        <div className="grid grid-cols-2 gap-3 w-full">
+                                            <button onClick={resetScan} className="py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
+                                                <RotateCcw className="w-5 h-5" />
+                                                <span>مسح جديد</span>
+                                            </button>
+                                            <button
+                                                onClick={() => navigate('/products', {
+                                                    state: {
+                                                        openAddModal: true,
+                                                        productData: {
+                                                            barcode: scannedData.barcode,
+                                                            name: scannedData.exists ? scannedData.name : '',
+                                                            image: scannedData.exists ? scannedData.image : ''
+                                                        }
+                                                    }
+                                                })}
+                                                className="py-3.5 rounded-2xl bg-emerald-500 text-white font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/30"
+                                            >
+                                                إضافة/ادارة
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
                 )}
             </div>
         </div>
