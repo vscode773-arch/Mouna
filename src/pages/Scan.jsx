@@ -133,23 +133,46 @@ export default function ScanPage() {
             <div className="flex-1 relative flex items-center justify-center bg-black">
                 {isScanning ? (
                     <div className="w-full h-full relative">
+                        {/* CSS to force Video Fill Cleanly */}
+                        <style>{`
+                            #reader video {
+                                object-fit: cover !important;
+                                width: 100% !important;
+                                height: 100% !important;
+                            }
+                        `}</style>
+
                         {/* The Camera View - Full Height */}
                         <div id="reader" className="w-full h-full bg-black"></div>
 
-                        {/* Laser Line Overlay */}
-                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                            {/* Red Line */}
-                            <div className="w-[85%] h-0.5 bg-red-600 shadow-[0_0_15px_3px_rgba(220,38,38,0.9)] animate-pulse relative z-10"></div>
+                        {/* Dark Overlay with Transparent Center Rect (Premium UI) */}
+                        <div className="absolute inset-0 pointer-events-none z-10">
+                            {/* Top Dark */}
+                            <div className="absolute top-0 left-0 right-0 h-[25%] bg-black/50 backdrop-blur-[2px]"></div>
+                            {/* Bottom Dark */}
+                            <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-black/50 backdrop-blur-[2px]"></div>
+                            {/* Left Dark */}
+                            <div className="absolute top-[25%] bottom-[35%] left-0 w-[10%] bg-black/50 backdrop-blur-[2px]"></div>
+                            {/* Right Dark */}
+                            <div className="absolute top-[25%] bottom-[35%] right-0 w-[10%] bg-black/50 backdrop-blur-[2px]"></div>
 
-                            {/* Visual Borders */}
-                            <div className="absolute w-72 h-48 border-2 border-white/20 rounded-2xl"></div>
-                            <div className="absolute w-72 h-48 border-2 border-emerald-500/40 rounded-2xl animate-ping opacity-10"></div>
+                            {/* Center Scan Area Frame */}
+                            <div className="absolute top-[25%] bottom-[35%] left-[10%] right-[10%] border-2 border-white/50 rounded-xl shadow-[0_0_0_9999px_rgba(0,0,0,0.1)]">
+                                {/* Corner Markers */}
+                                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-500 -mt-1 -ml-1 rounded-tl-xl"></div>
+                                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-500 -mt-1 -mr-1 rounded-tr-xl"></div>
+                                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-500 -mb-1 -ml-1 rounded-bl-xl"></div>
+                                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-500 -mb-1 -mr-1 rounded-br-xl"></div>
+
+                                {/* Laser Line */}
+                                <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-red-500 shadow-[0_0_15px_3px_rgba(239,68,68,0.8)] animate-pulse"></div>
+                            </div>
                         </div>
 
                         {/* Instructions Overlay */}
                         <div className="absolute bottom-10 left-0 right-0 text-center text-white z-30 pointer-events-none">
-                            <span className="text-sm bg-black/60 px-4 py-2 rounded-full backdrop-blur-md border border-white/10 font-bold text-emerald-400">
-                                ماسح متطور V2 🚀
+                            <span className="text-sm bg-black/60 px-5 py-2 rounded-full backdrop-blur-md border border-white/10 font-bold text-emerald-400 shadow-xl">
+                                الماسح الذكي V2 🚀
                             </span>
                         </div>
                     </div>
