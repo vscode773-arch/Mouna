@@ -38,9 +38,7 @@ export default function ScanPage() {
         let html5QrCode;
 
         const startScanner = async () => {
-            // Wait for DOM
-            await new Promise(r => setTimeout(r, 100));
-
+            // Instant Start - No Delay
             try {
                 if (!document.getElementById("reader")) return;
 
