@@ -55,13 +55,37 @@ app.get('/api/products', async (req, res) => {
         // Get total count for pagination info
         const total = await prisma.product.count({ where });
 
-        const products = await prisma.product.findMany({
+        let products = await prisma.product.findMany({
             where,
             skip: barcode ? 0 : skip, // No skip if searching by exact barcode
             take: barcode ? undefined : parseInt(limit),
             include: { addedBy: { select: { name: true } } },
             orderBy: { createdAt: 'desc' }
         });
+
+        // 🧠 MEMORY FEATURE: If searching by barcode and no product found in inventory
+        if (barcode && products.length === 0) {
+            // Check the SavedProduct memory table
+            const savedDetails = await prisma.savedProduct.findUnique({
+                where: { barcode }
+            });
+
+            if (savedDetails) {
+                // Return the saved details formatted like a regular product
+                // but with null id/expiry to indicate it needs to be "added" again
+                products = [{
+                    id: null, // Indicates new entry needed
+                    barcode: savedDetails.barcode,
+                    name: savedDetails.name,
+                    category: savedDetails.category,
+                    image: savedDetails.image,
+                    expiry: null, // Must act as if we just fetched details from global DB
+                    quantity: 0,
+                    department: null,
+                    fromMemory: true // Front-end can use this flag if needed
+                }];
+            }
+        }
 
         res.json({
             data: products,
@@ -88,11 +112,29 @@ app.post('/api/products', async (req, res) => {
         // Normalize to start of day to ensure loose comparison works if times differ
         expiryDate.setHours(0, 0, 0, 0);
 
+        // 🧠 MEMORY FEATURE: Save metadata to SavedProduct table for future recall
+        if (barcode && name) {
+            await prisma.savedProduct.upsert({
+                where: { barcode },
+                update: {
+                    name,
+                    category,
+                    image: image || undefined, // Only update image if provided
+                    updatedAt: new Date()
+                },
+                create: {
+                    barcode,
+                    name,
+                    category,
+                    image,
+                    updatedAt: new Date()
+                }
+            }).catch(err => console.error("Failed to save product to memory:", err));
+        }
+
         // Find existing product with same barcode
         // Since we can't easily query by date equality in all generic DBs via Prisma findFirst without ranges, 
         // we'll find by barcode first then filter in JS if needed, or rely on precise match if available.
-        // For robustness, let's find by barcode and filter.
-
         let existingProduct = null;
         if (barcode) {
             const candidates = await prisma.product.findMany({
@@ -183,6 +225,26 @@ app.put('/api/products/:id', async (req, res) => {
                 image
             }
         });
+
+        // 🧠 MEMORY UPDATE: Also update memory if name/image changed
+        if (updatedProduct.barcode) {
+            await prisma.savedProduct.upsert({
+                where: { barcode: updatedProduct.barcode },
+                update: {
+                    name,
+                    category,
+                    image: image || undefined,
+                    updatedAt: new Date()
+                },
+                create: {
+                    barcode: updatedProduct.barcode,
+                    name: updatedProduct.name,
+                    category: updatedProduct.category, // Fallback to current
+                    image: image || updatedProduct.image,
+                    updatedAt: new Date()
+                }
+            }).catch(e => console.error("Memory update failed", e));
+        }
 
         // Create Audit Log
         if (userId) {
@@ -433,6 +495,8 @@ app.post('/api/restore', async (req, res) => {
             await tx.product.deleteMany();
             await tx.category.deleteMany();
             await tx.user.deleteMany();
+            // Note: We deliberately do NOT clear SavedProduct memory table during restore
+            // to preserve the learned product history.
 
             // 2. Restore Users
             for (const user of data.users) {

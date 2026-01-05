@@ -50,3 +50,12 @@ model Category {
   id    Int    @id @default(autoincrement())
   name  String @unique
 }
+
+// جدول ذاكرة المنتجات (يحتفظ بالبيانات الأساسية حتى بعد الحذف من المخزون)
+model SavedProduct {
+  barcode     String   @id // الباركود هو المعرف الأساسي
+  name        String
+  category    String
+  image       String?
+  updatedAt   DateTime @updatedAt
+}
