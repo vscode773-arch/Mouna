@@ -7,10 +7,6 @@
     ],
     "rewrites": [
         {
-            "source": "/api/(.*)",
-            "destination": "/server/index.js"
-        },
-        {
             "source": "/OneSignalSDKWorker.js",
             "destination": "/OneSignalSDKWorker.js"
         },
