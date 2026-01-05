@@ -66,26 +66,31 @@ export default function Settings() {
     };
 
     const enableNotificationsManual = async () => {
-        alert("جاري محاولة تفعيل الإشعارات..."); // Debug Alert 1
-        try {
-            // Check if blocked
-            const state = await OneSignal.getNotificationPermission();
-            alert(`حالة الإذن الحالية: ${state}`); // Debug Alert 2
+        alert("✅ جاري تفعيل الإشعارات...");
 
-            if (state === 'blocked') {
-                alert("الإشعارات محظورة. يرجى تفعيلها من إعدادات المتصفح (بجانب شريط العنوان).");
+        try {
+            // الطريقة المباشرة لضمان العمل
+            window.OneSignal = window.OneSignal || [];
+
+            // 1. Check direct permission first
+            if (Notification.permission === 'granted') {
+                alert("الإشعارات مفعلة بالفعل في المتصفح! ✅");
+            } else if (Notification.permission === 'denied') {
+                alert("⛔ الإشعارات محظورة. يجب تفعيلها من إعدادات المتصفح للموقع.");
                 return;
             }
 
-            await OneSignal.Slidedown.promptPush();
+            // 2. Try Prompt using native push
+            window.OneSignal.push(function () {
+                OneSignal.Slidedown.promptPush({ force: true });
+                OneSignal.User.PushSubscription.optIn();
+            });
 
-            // Fallback request
-            await OneSignal.User.PushSubscription.optIn();
+            alert("تم إرسال الطلب. انظر لأعلى الشاشة للموافقة!");
 
-            alert("تم إرسال الطلب.");
         } catch (error) {
-            console.error("Error enabling notifications:", error);
-            alert(`حدث خطأ: ${error.message}`);
+            console.error(error);
+            alert("خطأ: " + error.message);
         }
     };
 
@@ -321,9 +326,9 @@ export default function Settings() {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={enableNotificationsManual}
-                            className="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition-colors"
+                            className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors font-bold shadow-sm"
                         >
-                            تفعيل
+                            تفعيل الإشعارات (جديد) 🔔
                         </button>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" checked={notifications} onChange={toggleNotifications} className="sr-only peer" />
