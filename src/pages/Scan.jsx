@@ -157,7 +157,7 @@ export default function ScanPage() {
                             <div className="absolute top-[25%] bottom-[35%] right-0 w-[10%] bg-black/50 backdrop-blur-[2px]"></div>
 
                             {/* Center Scan Area Frame */}
-                            <div className="absolute top-[25%] bottom-[35%] left-[10%] right-[10%] border-2 border-white/50 rounded-xl shadow-[0_0_0_9999px_rgba(0,0,0,0.1)]">
+                            <div className="absolute top-[25%] bottom-[35%] left-[10%] right-[10%] rounded-xl shadow-[0_0_0_9999px_rgba(0,0,0,0.1)]">
                                 {/* Corner Markers */}
                                 <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-500 -mt-1 -ml-1 rounded-tl-xl"></div>
                                 <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-500 -mt-1 -mr-1 rounded-tr-xl"></div>
