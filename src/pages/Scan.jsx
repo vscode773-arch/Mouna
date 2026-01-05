@@ -132,40 +132,34 @@ export default function ScanPage() {
             {/* Main Scanner Area */}
             <div className="flex-1 relative flex items-center justify-center bg-black">
                 {isScanning ? (
-                    <div className="w-full h-full relative">
-                        {/* CSS to force Video Fill Cleanly */}
-                        <style>{`
-                            #reader video {
-                                object-fit: cover !important;
-                                width: 100% !important;
-                                height: 100% !important;
-                            }
-                        `}</style>
-
-                        {/* The Camera View - Full Height */}
-                        <div id="reader" className="w-full h-full bg-black"></div>
+                    <div className="w-full h-full relative overflow-hidden bg-black">
+                        {/* The Camera View - specific styling to force video coverage */}
+                        <div
+                            id="reader"
+                            className="w-full h-full bg-black [&_video]:w-full [&_video]:h-full [&_video]:object-cover [&_video]:!relative"
+                        ></div>
 
                         {/* Dark Overlay with Transparent Center Rect (Premium UI) */}
                         <div className="absolute inset-0 pointer-events-none z-10">
                             {/* Top Dark */}
-                            <div className="absolute top-0 left-0 right-0 h-[25%] bg-black/50 backdrop-blur-[2px]"></div>
+                            <div className="absolute top-0 left-0 right-0 h-[25%] bg-black/60 backdrop-blur-[1px]"></div>
                             {/* Bottom Dark */}
-                            <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-black/50 backdrop-blur-[2px]"></div>
+                            <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-black/60 backdrop-blur-[1px]"></div>
                             {/* Left Dark */}
-                            <div className="absolute top-[25%] bottom-[35%] left-0 w-[10%] bg-black/50 backdrop-blur-[2px]"></div>
+                            <div className="absolute top-[25%] bottom-[35%] left-0 w-[10%] bg-black/60 backdrop-blur-[1px]"></div>
                             {/* Right Dark */}
-                            <div className="absolute top-[25%] bottom-[35%] right-0 w-[10%] bg-black/50 backdrop-blur-[2px]"></div>
+                            <div className="absolute top-[25%] bottom-[35%] right-0 w-[10%] bg-black/60 backdrop-blur-[1px]"></div>
 
-                            {/* Center Scan Area Frame */}
-                            <div className="absolute top-[25%] bottom-[35%] left-[10%] right-[10%] rounded-xl shadow-[0_0_0_9999px_rgba(0,0,0,0.1)]">
+                            {/* Center Scan Area Frame (No Border, just Corners) */}
+                            <div className="absolute top-[25%] bottom-[35%] left-[10%] right-[10%] shadow-[0_0_0_9999px_rgba(0,0,0,0.2)]">
                                 {/* Corner Markers */}
-                                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-500 -mt-1 -ml-1 rounded-tl-xl"></div>
-                                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-500 -mt-1 -mr-1 rounded-tr-xl"></div>
-                                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-500 -mb-1 -ml-1 rounded-bl-xl"></div>
-                                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-500 -mb-1 -mr-1 rounded-br-xl"></div>
+                                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-500 -mt-1 -ml-1 rounded-tl-xl shadow-sm"></div>
+                                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-500 -mt-1 -mr-1 rounded-tr-xl shadow-sm"></div>
+                                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-500 -mb-1 -ml-1 rounded-bl-xl shadow-sm"></div>
+                                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-500 -mb-1 -mr-1 rounded-br-xl shadow-sm"></div>
 
                                 {/* Laser Line */}
-                                <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-red-500 shadow-[0_0_15px_3px_rgba(239,68,68,0.8)] animate-pulse"></div>
+                                <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-red-500 shadow-[0_0_15px_3px_rgba(239,68,68,0.9)] animate-pulse"></div>
                             </div>
                         </div>
 
