@@ -66,11 +66,26 @@ export default function Settings() {
     };
 
     const enableNotificationsManual = async () => {
+        alert("جاري محاولة تفعيل الإشعارات..."); // Debug Alert 1
         try {
+            // Check if blocked
+            const state = await OneSignal.getNotificationPermission();
+            alert(`حالة الإذن الحالية: ${state}`); // Debug Alert 2
+
+            if (state === 'blocked') {
+                alert("الإشعارات محظورة. يرجى تفعيلها من إعدادات المتصفح (بجانب شريط العنوان).");
+                return;
+            }
+
             await OneSignal.Slidedown.promptPush();
+
+            // Fallback request
+            await OneSignal.User.PushSubscription.optIn();
+
+            alert("تم إرسال الطلب.");
         } catch (error) {
             console.error("Error enabling notifications:", error);
-            alert("حدث خطأ أثناء طلب الإذن. الرجاء المحاولة مرة أخرى.");
+            alert(`حدث خطأ: ${error.message}`);
         }
     };
 
