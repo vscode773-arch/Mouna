@@ -121,6 +121,14 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
 
     const fetchProductDetails = async (barcode) => {
         if (!barcode) return;
+
+        // OPTIMIZATION: If we already have the name (e.g. passed from ScanPage), DON'T fetch again!
+        // This fixes the "slow/double search" issue user reported.
+        if (formData.name && formData.barcode === barcode && initialData?.name) {
+            console.log("Skipping fetch: Data already provided from Scan Page");
+            return;
+        }
+
         setScanning(true);
         try {
             // 1. Try Local Server First (Inventory & Memory)
