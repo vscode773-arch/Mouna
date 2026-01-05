@@ -60,14 +60,14 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                     disableFlip: false,
                 };
 
-                // Advanced Camera Constraints for HD & Focus
+                // Safely Request Camera
                 const cameraConfig = {
-                    facingMode: "environment",
-                    width: { min: 640, ideal: 1280, max: 1920 }, // Force HD/FHD if available
-                    height: { min: 480, ideal: 720, max: 1080 },
-                    focusMode: "continuous" // Try to force auto-focus
+                    facingMode: "environment"
+                    // We removed strict resolution constraints to prevent black screen
+                    // The library will automatically pick the best available resolution
                 };
 
+                // Try to start scanning
                 html5QrCode.start(
                     cameraConfig,
                     config,
@@ -85,6 +85,8 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                     }
                 ).catch(err => {
                     console.error("Error starting scanner", err);
+                    alert("فشل تشغيل الكاميرا: " + err); // Show error to user
+                    setShowScanner(false);
                 });
             }, 100);
             return () => clearTimeout(timer);
