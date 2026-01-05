@@ -280,6 +280,16 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                                 {/* Scanner Container */}
                                 {showScanner && (
                                     <div className="mt-4 relative rounded-2xl overflow-hidden bg-black shadow-2xl">
+                                        {/* Force Video to Cover */}
+                                        <style>{`
+                                            #reader video {
+                                                object-fit: cover !important;
+                                                width: 100% !important;
+                                                height: 100% !important;
+                                                border-radius: 1rem;
+                                            }
+                                        `}</style>
+
                                         {/* The Camera View */}
                                         <div id="reader" className="w-full h-64 bg-black"></div>
 
