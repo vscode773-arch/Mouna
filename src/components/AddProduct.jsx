@@ -67,7 +67,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                     (decodedText) => {
                         playScanSound();
                         setFormData(prev => ({ ...prev, barcode: decodedText }));
-                        fetchProductFromGlobalDB(decodedText);
+                        fetchProductDetails(decodedText);
                         setShowScanner(false);
                         if (html5QrCode.isScanning) {
                             html5QrCode.stop().then(() => html5QrCode.clear()).catch(console.error);
@@ -110,10 +110,34 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
         fetchCategories();
     }, []);
 
-    const fetchProductFromGlobalDB = async (barcode) => {
+    const fetchProductDetails = async (barcode) => {
         if (!barcode) return;
         setScanning(true);
         try {
+            // 1. Try Local Server First (Inventory & Memory)
+            const localRes = await fetch(`${API_URL}/api/products?barcode=${barcode}`);
+            if (localRes.ok) {
+                const data = await localRes.json();
+                const foundProduct = data.data?.[0]; // Get first match
+
+                if (foundProduct) {
+                    console.log("Found in local memory/inventory:", foundProduct.name);
+                    setFormData(prev => ({
+                        ...prev,
+                        name: foundProduct.name,
+                        category: foundProduct.category || prev.category,
+                        image: foundProduct.image || prev.image,
+                        // If it came from memory (id is null), we reset quantity to 1
+                        // If it exists in inventory (id is present), maybe user wants to edit/add more?
+                        // Let's assume AddProduct is for "Adding new stock", so keep defaults on expiry/qty.
+                    }));
+                    setScanning(false);
+                    return; // Stop here, we found it!
+                }
+            }
+
+            // 2. Fallback to OpenFoodFacts (Global DB)
+            console.log("Not found locally, trying global DB...");
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
             const data = await response.json();
 
@@ -230,7 +254,7 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData }) {
                                         ref={barcodeInputRef}
                                         value={formData.barcode}
                                         onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                                        onBlur={(e) => fetchProductFromGlobalDB(e.target.value)}
+                                        onBlur={(e) => fetchProductDetails(e.target.value)}
                                         placeholder="امسح الباركود..."
                                         className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none dark:text-white text-center font-mono tracking-wider"
                                     />
