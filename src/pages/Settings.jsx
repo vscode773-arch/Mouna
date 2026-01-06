@@ -2,13 +2,12 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import OneSignal from 'react-onesignal';
-import { User, Bell, Shield, Database, Moon, Sun, Smartphone, LogOut, Save, Layers, Upload, Download, RefreshCcw, CloudDownload } from 'lucide-react';
+import { User, Bell, Shield, Database, Moon, Sun, Smartphone, LogOut, Save, Layers, Upload, Download, RefreshCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import UserManagementModal from '../components/UserManagementModal';
 import CategoryManagementModal from '../components/CategoryManagementModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { API_URL } from '../config';
-import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
 export default function Settings() {
     const { user, logout, updateProfile } = useAuth();
@@ -34,10 +33,6 @@ export default function Settings() {
     // Modals State
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-
-    // Update State
-    const [isUpdating, setIsUpdating] = useState(false);
-    const [updateStatus, setUpdateStatus] = useState('');
 
     // Restore & Confirmation State
     const fileInputRef = useRef(null);
@@ -328,74 +323,6 @@ export default function Settings() {
                             <input type="checkbox" checked={notifications} onChange={toggleNotifications} className="sr-only peer" />
                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
                         </label>
-                    </div>
-                </div>
-            </Section>
-
-            {/* OTA Updates Section */}
-            <Section title="تحديثات التطبيق" icon={Download}>
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/30 rounded-xl">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-500 flex items-center justify-center">
-                                <CloudDownload className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <p className="font-medium text-slate-900 dark:text-white">إصدار التطبيق</p>
-                                <p className="text-xs text-slate-500">الإصدار الحالي: GitHub v1.0.0 (Beta)</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={async () => {
-                                setIsUpdating(true);
-                                try {
-                                    setUpdateStatus('جاري التحقق...');
-
-                                    // 1. Check GitHub for latest release
-                                    const res = await fetch('https://api.github.com/repos/vscode773-arch/Mouna/releases/latest');
-                                    if (!res.ok) throw new Error("Could not check updates");
-                                    const release = await res.json();
-
-                                    const latestVersion = release.tag_name; // e.g., v1.0.5
-                                    const currentVersion = localStorage.getItem('appVersion') || 'v1.0.0';
-
-                                    // Simple string compare (can be improved)
-                                    if (latestVersion !== currentVersion) {
-                                        // Find dist.zip asset
-                                        const asset = release.assets.find(a => a.name === 'dist.zip');
-                                        if (!asset) {
-                                            alert("يوجد تحديث جديد ولكن ملف التحديث غير متوفر.");
-                                            return;
-                                        }
-
-                                        if (window.confirm(`يوجد تحديث جديد (${latestVersion}). هل ترغب في التحميل والتثبيت الآن؟`)) {
-                                            setUpdateStatus('جار التحميل...');
-                                            // Download & Install
-                                            const version = await CapacitorUpdater.download({
-                                                url: asset.browser_download_url,
-                                                version: latestVersion
-                                            });
-
-                                            setUpdateStatus('جار التثبيت...');
-                                            await CapacitorUpdater.set(version); // This reloads the app
-                                            localStorage.setItem('appVersion', latestVersion);
-                                        }
-                                    } else {
-                                        alert("أنت تستخدم أحدث إصدار بالفعل! ✅");
-                                    }
-                                } catch (error) {
-                                    console.error(error);
-                                    alert("فشل التحقق من التحديثات: " + (error.message || "Unknown error"));
-                                } finally {
-                                    setIsUpdating(false);
-                                    setUpdateStatus('');
-                                }
-                            }}
-                            disabled={isUpdating}
-                            className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                        >
-                            {isUpdating ? updateStatus : 'تحقق من التحديثات'}
-                        </button>
                     </div>
                 </div>
             </Section>
