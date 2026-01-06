@@ -26,32 +26,36 @@ jobs:
         with:
           node-version: '18'
 
-      # 1. Install Dependencies
       - name: Install Dependencies
         run: |
           npm install --legacy-peer-deps
 
-      # 2. Build Web Assets
       - name: Build Web App
         run: npm run build
         env:
           CI: false
 
-      # 3. Use Existing Android Project & Sync
-      - name: Sync Android Project
+      # Generate Android Project Freshly
+      - name: Generate Android Project
         run: |
-           echo "Syncing assets to existing Android project..."
+           # Remove existing if any (just in case)
+           rm -rf android
+           # Add platform
+           echo "Adding Android platform..."
+           npx cap add android
+           # Sync
+           echo "Syncing assets..."
            npx cap sync android
-
-      # 4. Update Gradle Version Manually
-      - name: Update Gradle Version
+           
+      # Fix Gradle Version (Critical Step)
+      - name: Update Gradle Wrapper to 8.5
         working-directory: android
         run: |
           echo "Updating Gradle wrapper properties..."
           sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip|g' gradle/wrapper/gradle-wrapper.properties
           cat gradle/wrapper/gradle-wrapper.properties
 
-      # 5. Build APK
+      # Build APK
       - name: Build APK
         working-directory: android
         run: |
