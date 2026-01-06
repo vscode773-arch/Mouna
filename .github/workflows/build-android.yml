@@ -36,12 +36,16 @@ jobs:
         env:
           CI: false
 
-      # 3. Generate Android Project FRESH on Linux (Solves all OS mismatch issues)
+      # 3. Install Capacitor CLI globally for reliable execution
+      - name: Install Capacitor CLI
+        run: npm install -g @capacitor/cli@6.0.0
+
+      # 4. Generate Android Project FRESH on Linux (Solves all OS mismatch issues)
       - name: Generate Android Project
         run: |
            rm -rf android
-           npx cap add android
-           npx cap sync android
+           cap add android
+           cap sync android
 
       # 4. Upgrade Gradle to fix compatibility issues
       - name: Upgrade Gradle Wrapper
