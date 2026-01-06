@@ -25,24 +25,30 @@ jobs:
         with:
           node-version: '18'
 
+      # 1. Install Dependencies (Safe & Clean)
       - name: Install Dependencies
         run: |
-          rm -f package-lock.json
-          npm install --legacy-peer-deps
+          npm install
 
+      # 2. Build Web Assets
       - name: Build Web App
         run: npm run build
         env:
           CI: false
 
-      # Skip Sync step as we already pushed the full Android folder with assets
-      
-      - name: Build APK (System Gradle)
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: '8.2'
-          arguments: assembleDebug
-          build-root-directory: android
+      # 3. Generate Android Project FRESH on Linux (Solves all OS mismatch issues)
+      - name: Generate Android Project
+        run: |
+           rm -rf android
+           npx cap add android
+           npx cap sync android
+
+      # 4. Build APK using the FRESHLY generated project
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
