@@ -12,3 +12,43 @@
     @apply font-sans antialiased text-gray-900 bg-gray-50 dark:bg-gray-950 dark:text-gray-100;
   }
 }
+
+/* 
+   NATIVE SCANNER TRANSPARENCY FIX 
+   When the scanner is active, we must make the entire webview transparent
+   so the native camera layer behind it becomes visible.
+*/
+body.scanner-active,
+body.scanner-active #root {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* Make all modals and backgrounds transparent when scanning */
+body.scanner-active .fixed, 
+body.scanner-active .absolute, 
+body.scanner-active .bg-white,
+body.scanner-active .dark\:bg-slate-800,
+body.scanner-active .dark\:bg-gray-950 {
+  background-color: transparent !important;
+}
+
+/* Hide specific modal contents that might block the view if transparency isn't enough */
+body.scanner-active [role="dialog"],
+body.scanner-active form {
+  /* We might want to hide the form to see the full camera */
+  visibility: hidden;
+}
+
+/* BUT keep the scanner UI visible! */
+body.scanner-active .scanner-ui,
+body.scanner-active .z-\[100\] {
+  visibility: visible !important;
+  opacity: 1 !important;
+  background-color: transparent !important;
+}
+
+/* Ensure the scanner container itself is visible */
+body.scanner-active .z-\[100\] * {
+  visibility: visible !important;
+}
