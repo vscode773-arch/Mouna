@@ -35,15 +35,14 @@ jobs:
         env:
           CI: false
 
-      # Android project is already tracked in repo, just sync assets
-      - name: Sync Capacitor
-        run: npx cap sync android
-
-      - name: Build APK
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+      # Skip Sync step as we already pushed the full Android folder with assets
+      
+      - name: Build APK (System Gradle)
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: '8.2'
+          arguments: assembleDebug
+          build-root-directory: android
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
