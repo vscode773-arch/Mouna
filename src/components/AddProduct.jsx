@@ -4,9 +4,12 @@ import { X, Calendar, Scan, ChevronDown, Save, Search, Loader2, Camera, Upload }
 import { format } from 'date-fns';
 import { Html5Qrcode } from 'html5-qrcode';
 import { API_URL } from '../config';
+import { Capacitor } from '@capacitor/core';
+import NativeScanner from './NativeScanner';
 import { playScanSound } from '../lib/utils';
 
 export default function AddProduct({ isOpen, onClose, onAdd, initialData, startWithScanner }) {
+    const isNative = Capacitor.isNativePlatform();
     const [formData, setFormData] = useState({
         barcode: initialData?.barcode || '',
         name: initialData?.name || '',
@@ -308,47 +311,61 @@ export default function AddProduct({ isOpen, onClose, onAdd, initialData, startW
 
                                 {/* Camera Viewfinder */}
                                 {/* Scanner Container */}
+                                {/* Scanner Container */}
                                 {showScanner && (
-                                    <div className="mt-4 relative rounded-2xl overflow-hidden bg-black shadow-2xl">
-                                        {/* CSS to force Video Fill */}
-                                        <style>{`
-                                            #reader video {
-                                                object-fit: cover !important;
-                                                width: 100% !important;
-                                                height: 100% !important;
-                                                border-radius: 1rem;
-                                            }
-                                        `}</style>
+                                    <>
+                                        {isNative ? (
+                                            <NativeScanner
+                                                onScan={(code) => {
+                                                    setFormData(prev => ({ ...prev, barcode: code }));
+                                                    fetchProductDetails(code);
+                                                    setShowScanner(false);
+                                                }}
+                                                onClose={() => setShowScanner(false)}
+                                            />
+                                        ) : (
+                                            <div className="mt-4 relative rounded-2xl overflow-hidden bg-black shadow-2xl">
+                                                {/* CSS to force Video Fill */}
+                                                <style>{`
+                                                    #reader video {
+                                                        object-fit: cover !important;
+                                                        width: 100% !important;
+                                                        height: 100% !important;
+                                                        border-radius: 1rem;
+                                                    }
+                                                `}</style>
 
-                                        {/* The Camera View */}
-                                        <div id="reader" className="w-full h-64 bg-black"></div>
+                                                {/* The Camera View */}
+                                                <div id="reader" className="w-full h-64 bg-black"></div>
 
-                                        {/* Laser Line Overlay */}
-                                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                                            {/* Red Line */}
-                                            <div className="w-[90%] h-0.5 bg-red-600 shadow-[0_0_10px_2px_rgba(220,38,38,0.8)] animate-pulse relative z-10"></div>
+                                                {/* Laser Line Overlay */}
+                                                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                                                    {/* Red Line */}
+                                                    <div className="w-[90%] h-0.5 bg-red-600 shadow-[0_0_10px_2px_rgba(220,38,38,0.8)] animate-pulse relative z-10"></div>
 
-                                            {/* Scan Area Borders (Optional Visuals) */}
-                                            <div className="absolute w-64 h-40 border-2 border-white/30 rounded-lg"></div>
-                                            <div className="absolute w-64 h-40 border-2 border-emerald-500/50 rounded-lg animate-ping opacity-20"></div>
-                                        </div>
+                                                    {/* Scan Area Borders (Optional Visuals) */}
+                                                    <div className="absolute w-64 h-40 border-2 border-white/30 rounded-lg"></div>
+                                                    <div className="absolute w-64 h-40 border-2 border-emerald-500/50 rounded-lg animate-ping opacity-20"></div>
+                                                </div>
 
-                                        {/* Close Button */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowScanner(false)}
-                                            className="absolute top-3 right-3 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full z-20 backdrop-blur-sm transition-all"
-                                        >
-                                            <X className="w-5 h-5" />
-                                        </button>
+                                                {/* Close Button */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowScanner(false)}
+                                                    className="absolute top-3 right-3 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full z-20 backdrop-blur-sm transition-all"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
 
-                                        {/* Instructions Overlay */}
-                                        <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none">
-                                            <span className="text-xs text-white/80 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
-                                                ماسح متطور V2 🚀
-                                            </span>
-                                        </div>
-                                    </div>
+                                                {/* Instructions Overlay */}
+                                                <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none">
+                                                    <span className="text-xs text-white/80 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+                                                        ماسح ويب V3 🌐
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
 
