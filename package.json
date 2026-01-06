@@ -16,6 +16,7 @@
     "@capacitor/android": "^6.0.0",
     "@capacitor/cli": "^6.0.0",
     "@capacitor/core": "^6.0.0",
+    "@capgo/capacitor-updater": "^8.41.5",
     "@prisma/client": "^6.19.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
