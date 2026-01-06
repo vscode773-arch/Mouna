@@ -38,10 +38,20 @@ const NativeScanner = ({ onScan, onClose }) => {
         await BarcodeScanner.hideBackground();
         document.body.style.backgroundColor = "transparent";
         document.documentElement.style.backgroundColor = "transparent";
-        // Also hide any main layout backgrounds if possible (might need global CSS tweak)
 
-        // Start scanning
-        document.body.classList.add("scanner-active"); // Helper class
+        // AGGRESSIVE FIX: Force root layout transparency
+        const rootDiv = document.getElementById('root');
+        if (rootDiv) {
+            rootDiv.style.backgroundColor = "transparent";
+            // Make immediate children transparent too (Layout wrapper)
+            Array.from(rootDiv.children).forEach(child => {
+                if (child instanceof HTMLElement) child.style.backgroundColor = "transparent";
+            });
+        }
+
+        // Add class for global CSS support
+        document.body.classList.add("scanner-active");
+
         BarcodeScanner.startScan().then((result) => {
             // Result contains content
             if (result.hasContent) {
@@ -57,6 +67,16 @@ const NativeScanner = ({ onScan, onClose }) => {
         BarcodeScanner.stopScan();
         document.body.style.backgroundColor = ""; // Reset
         document.documentElement.style.backgroundColor = "";
+
+        // Restore root layout
+        const rootDiv = document.getElementById('root');
+        if (rootDiv) {
+            rootDiv.style.backgroundColor = "";
+            Array.from(rootDiv.children).forEach(child => {
+                if (child instanceof HTMLElement) child.style.backgroundColor = "";
+            });
+        }
+
         document.body.classList.remove("scanner-active");
     };
 
