@@ -35,11 +35,7 @@ jobs:
         env:
           CI: false
 
-      - name: Initialize Android Platform
-        run: |
-           rm -rf android
-           npx cap add android
-
+      # Android project is already tracked in repo, just sync assets
       - name: Sync Capacitor
         run: npx cap sync android
 
