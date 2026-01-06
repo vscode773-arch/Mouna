@@ -43,12 +43,19 @@ jobs:
            npx cap add android
            npx cap sync android
 
-      # 4. Build APK using the generated project's Gradle wrapper
+      # 4. Upgrade Gradle to fix compatibility issues
+      - name: Upgrade Gradle Wrapper
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew wrapper --gradle-version=8.5
+
+      # 5. Build APK with upgraded Gradle
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --warning-mode=none --stacktrace
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
