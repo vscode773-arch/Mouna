@@ -1,0 +1,6 @@
+# Force unix-style line endings for these files
+gradlew text eol=lf
+*.sh text eol=lf
+*.js text
+*.css text
+*.html text
