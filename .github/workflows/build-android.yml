@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -25,7 +26,7 @@ jobs:
         with:
           node-version: '18'
 
-      # 1. Install Dependencies (Safe & Clean)
+      # 1. Install Dependencies
       - name: Install Dependencies
         run: |
           npm install --legacy-peer-deps
@@ -36,27 +37,13 @@ jobs:
         env:
           CI: false
 
-      # 3. Verify Build Output
-      - name: Verify Prerequisites
+      # 3. Use Existing Android Project & Sync
+      - name: Sync Android Project
         run: |
-           echo "Checking dist folder..."
-           ls -la dist || echo "dist folder not found!"
-           echo "Checking capacitor config..."
-           cat capacitor.config.json
-           echo "Checking Capacitor installation..."
-           npm list @capacitor/core @capacitor/cli @capacitor/android || echo "Some packages missing"
-
-      # 4. Generate Android Project FRESH on Linux
-      - name: Generate Android Project
-        run: |
-           rm -rf android
-           echo "Adding Android platform..."
-           npx cap add android
-           echo "Syncing assets..."
+           echo "Syncing assets to existing Android project..."
            npx cap sync android
-           echo "Android project created successfully!"
 
-      # 5. Update Gradle Version Manually (Avoid Maven download)
+      # 4. Update Gradle Version Manually
       - name: Update Gradle Version
         working-directory: android
         run: |
@@ -64,12 +51,12 @@ jobs:
           sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip|g' gradle/wrapper/gradle-wrapper.properties
           cat gradle/wrapper/gradle-wrapper.properties
 
-      # 6. Build APK with updated Gradle
+      # 5. Build APK
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --stacktrace --warning-mode all
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
