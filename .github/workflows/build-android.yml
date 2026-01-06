@@ -56,14 +56,7 @@ jobs:
            npx cap sync android
            echo "Android project created successfully!"
 
-      # 4. Upgrade Gradle to fix compatibility issues
-      - name: Upgrade Gradle Wrapper
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew wrapper --gradle-version=8.5
-
-      # 5. Build APK with upgraded Gradle
+      # 5. Build APK with default Gradle version
       - name: Build APK
         working-directory: android
         run: |
