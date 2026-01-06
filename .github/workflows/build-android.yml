@@ -28,7 +28,7 @@ jobs:
       # 1. Install Dependencies (Safe & Clean)
       - name: Install Dependencies
         run: |
-          npm install
+          npm install --legacy-peer-deps
 
       # 2. Build Web Assets
       - name: Build Web App
