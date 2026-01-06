@@ -37,14 +37,14 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Make Gradlew Executable & Fix EOL
-        run: |
-          sed -i 's/\r$//' android/gradlew
-          chmod +x android/gradlew
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: '8.0' # Use a stable recent version
 
       - name: Build APK with Gradle
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
