@@ -36,7 +36,17 @@ jobs:
         env:
           CI: false
 
-      # 3. Generate Android Project FRESH on Linux
+      # 3. Verify Build Output
+      - name: Verify Prerequisites
+        run: |
+           echo "Checking dist folder..."
+           ls -la dist || echo "dist folder not found!"
+           echo "Checking capacitor config..."
+           cat capacitor.config.json
+           echo "Checking Capacitor installation..."
+           npm list @capacitor/core @capacitor/cli @capacitor/android || echo "Some packages missing"
+
+      # 4. Generate Android Project FRESH on Linux
       - name: Generate Android Project
         run: |
            rm -rf android
