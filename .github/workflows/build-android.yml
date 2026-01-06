@@ -51,9 +51,9 @@ jobs:
         run: |
            rm -rf android
            echo "Adding Android platform..."
-           npx cap add android --verbose || (echo "Failed to add Android"; exit 1)
+           npx cap add android
            echo "Syncing assets..."
-           npx cap sync android --verbose || (echo "Failed to sync"; exit 1)
+           npx cap sync android
            echo "Android project created successfully!"
 
       # 4. Upgrade Gradle to fix compatibility issues
