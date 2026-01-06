@@ -8,13 +8,14 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "fix-gradle": "sed -i 's/\\r$//' android/gradlew || echo 'No sed available, skipping fix'"
   },
   "dependencies": {
     "@capacitor-community/barcode-scanner": "^4.0.1",
-    "@capacitor/android": "^8.0.0",
-    "@capacitor/cli": "^8.0.0",
-    "@capacitor/core": "^8.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
     "@prisma/client": "^6.19.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
