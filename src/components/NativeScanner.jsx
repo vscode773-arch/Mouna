@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { X, Zap, ZapOff } from 'lucide-react';
-import { playScanSound } from '../lib/utils'; // Re-use sound function
+import { playScanSound } from '../lib/utils';
 
 const NativeScanner = ({ onScan, onClose }) => {
     const [hasPermission, setHasPermission] = useState(false);
@@ -17,47 +18,45 @@ const NativeScanner = ({ onScan, onClose }) => {
                     startScan();
                 } else {
                     console.error("Camera permission denied");
-                    onClose(); // Close if denied
+                    onClose();
                 }
             } catch (err) {
                 console.error("Native scanner error:", err);
-                // Fallback or close could happen here
                 onClose();
             }
         };
+
+        // HIDE THE APP UI COMPLETELY
+        const rootApp = document.getElementById('root');
+        if (rootApp) {
+            rootApp.style.display = 'none'; // Poof! Application gone.
+        }
+
+        // Ensure body is transparent
+        document.body.style.backgroundColor = 'transparent';
+        document.documentElement.style.backgroundColor = 'transparent';
+
         checkPermission();
 
-        // Cleanup: Stop scan when component unmounts
+        // Cleanup: Stop scan & Restore App UI
         return () => {
             stopScan();
+            if (rootApp) {
+                rootApp.style.display = ''; // Restore app
+            }
+            document.body.style.backgroundColor = '';
+            document.documentElement.style.backgroundColor = '';
         };
     }, []);
 
     const startScan = async () => {
-        // Make webview transparent so we can see the camera behind it
         await BarcodeScanner.hideBackground();
-        document.body.style.backgroundColor = "transparent";
-        document.documentElement.style.backgroundColor = "transparent";
-
-        // AGGRESSIVE FIX: Force root layout transparency
-        const rootDiv = document.getElementById('root');
-        if (rootDiv) {
-            rootDiv.style.backgroundColor = "transparent";
-            // Make immediate children transparent too (Layout wrapper)
-            Array.from(rootDiv.children).forEach(child => {
-                if (child instanceof HTMLElement) child.style.backgroundColor = "transparent";
-            });
-        }
-
-        // Add class for global CSS support
         document.body.classList.add("scanner-active");
-
         BarcodeScanner.startScan().then((result) => {
-            // Result contains content
             if (result.hasContent) {
                 playScanSound();
-                onScan(result.content); // Return data
-                stopScan(); // Stop after one scan (optional, or keep scanning)
+                onScan(result.content);
+                // The cleanup function in useEffect will handle stopping scan/restoring UI
             }
         }).catch(err => console.error(err));
     };
@@ -65,18 +64,6 @@ const NativeScanner = ({ onScan, onClose }) => {
     const stopScan = () => {
         BarcodeScanner.showBackground();
         BarcodeScanner.stopScan();
-        document.body.style.backgroundColor = ""; // Reset
-        document.documentElement.style.backgroundColor = "";
-
-        // Restore root layout
-        const rootDiv = document.getElementById('root');
-        if (rootDiv) {
-            rootDiv.style.backgroundColor = "";
-            Array.from(rootDiv.children).forEach(child => {
-                if (child instanceof HTMLElement) child.style.backgroundColor = "";
-            });
-        }
-
         document.body.classList.remove("scanner-active");
     };
 
@@ -90,59 +77,50 @@ const NativeScanner = ({ onScan, onClose }) => {
         }
     };
 
-    if (!hasPermission) return <div className="fixed inset-0 bg-black z-50"></div>;
+    if (!hasPermission) return null;
 
-    return (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-transparent">
-            {/* 
-        This div is transparent, sitting ON TOP of the native camera.
-        We draw our UI here.
-      */}
-
+    // USE PORTAL: Render this UI outside the main App tree, directly into body
+    // This allows it to stay visible even when we hide #root
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex flex-col bg-transparent font-sans">
             {/* Header */}
-            <div className="flex justify-between items-center p-4 pt-10">
+            <div className="flex justify-between items-center p-4 pt-12 md:pt-4">
                 <button
-                    onClick={() => { stopScan(); onClose(); }}
-                    className="p-3 bg-black/40 backdrop-blur-md rounded-full text-white"
+                    onClick={() => { onClose(); }} // Parent will unmount us, triggering cleanup
+                    className="p-3 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-red-500/80 transition-colors"
                 >
-                    <X className="w-6 h-6" />
+                    <X className="w-8 h-8" />
                 </button>
 
                 <button
                     onClick={toggleFlash}
                     className={`p-3 rounded-full backdrop-blur-md transition-colors ${flashActive ? 'bg-yellow-400/80 text-black' : 'bg-black/40 text-white'}`}
                 >
-                    {flashActive ? <ZapOff className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
+                    {flashActive ? <ZapOff className="w-8 h-8" /> : <Zap className="w-8 h-8" />}
                 </button>
             </div>
 
-            {/* Center Frame UI (The same design we loved) */}
+            {/* Center Frame UI */}
             <div className="flex-1 flex items-center justify-center relative pointer-events-none">
-                {/* Scan Box */}
-                <div className="w-[75%] aspect-square max-w-sm relative">
-                    {/* 
-                   For native camera, we don't need "dark overlays" to mask the video, 
-                   because the WHOLE screen is the video.
-                   But we can add a subtle semi-transparent border to focus attention.
-                */}
+                <div className="w-[85%] aspect-square max-w-sm relative">
+                    {/* Corners */}
+                    <div className="absolute top-0 left-0 w-12 h-12 border-t-[6px] border-l-[6px] border-emerald-500 rounded-tl-3xl -mt-1 -ml-1 shadow-sm"></div>
+                    <div className="absolute top-0 right-0 w-12 h-12 border-t-[6px] border-r-[6px] border-emerald-500 rounded-tr-3xl -mt-1 -mr-1 shadow-sm"></div>
+                    <div className="absolute bottom-0 left-0 w-12 h-12 border-b-[6px] border-l-[6px] border-emerald-500 rounded-bl-3xl -mb-1 -ml-1 shadow-sm"></div>
+                    <div className="absolute bottom-0 right-0 w-12 h-12 border-b-[6px] border-r-[6px] border-emerald-500 rounded-br-3xl -mb-1 -mr-1 shadow-sm"></div>
 
-                    {/* Visual Corners */}
-                    <div className="absolute top-0 left-0 w-10 h-10 border-t-[6px] border-l-[6px] border-emerald-500 rounded-tl-3xl -mt-1 -ml-1 shadow-sm"></div>
-                    <div className="absolute top-0 right-0 w-10 h-10 border-t-[6px] border-r-[6px] border-emerald-500 rounded-tr-3xl -mt-1 -mr-1 shadow-sm"></div>
-                    <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[6px] border-l-[6px] border-emerald-500 rounded-bl-3xl -mb-1 -ml-1 shadow-sm"></div>
-                    <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[6px] border-r-[6px] border-emerald-500 rounded-br-3xl -mb-1 -mr-1 shadow-sm"></div>
-
-                    {/* Laser Line */}
+                    {/* Laser */}
                     <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-red-500 shadow-[0_0_20px_4px_rgba(239,68,68,1)] animate-pulse"></div>
                 </div>
 
-                <div className="absolute bottom-20 left-0 right-0 text-center">
+                <div className="absolute bottom-24 left-0 right-0 text-center">
                     <span className="inline-block px-6 py-2 bg-black/50 backdrop-blur-md rounded-full text-white/90 text-sm font-bold border border-white/10">
-                        Native Scanner ⚡
+                        جاري المسح...
                     </span>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body // Target container
     );
 };
 
