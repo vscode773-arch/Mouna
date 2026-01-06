@@ -34,13 +34,19 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
+      # Re-create Android folder fresh on the server to avoid Windows/Linux conflicts
+      - name: Initialize Android Platform
+        run: |
+           rm -rf android
+           npx cap add android
+
       - name: Sync Capacitor
         run: npx cap sync android
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: '8.0' # Use a stable recent version
+          gradle-version: '8.2' # Downgrade slightly to a known stable version matching Java 17
 
       - name: Build APK with Gradle
         working-directory: android
