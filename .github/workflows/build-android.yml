@@ -43,12 +43,12 @@ jobs:
            npx cap add android
            npx cap sync android
 
-      # 4. Build APK using the FRESHLY generated project
+      # 4. Build APK using the generated project's Gradle wrapper
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --warning-mode=none --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
