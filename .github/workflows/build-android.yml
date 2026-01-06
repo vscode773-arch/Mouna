@@ -24,9 +24,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
 
-      - name: Install Dependencies (Fresh)
+      - name: Install Dependencies
         run: |
           rm -f package-lock.json
           npm install --legacy-peer-deps
@@ -34,11 +33,8 @@ jobs:
       - name: Build Web App
         run: npm run build
         env:
-          CI: false # Prevent warnings from failing the build
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          CI: false
 
-      # Re-create Android folder fresh on the server to avoid Windows/Linux conflicts
       - name: Initialize Android Platform
         run: |
            rm -rf android
@@ -47,14 +43,11 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: '8.2' # Downgrade slightly to a known stable version matching Java 17
-
-      - name: Build APK with Gradle
+      - name: Build APK
         working-directory: android
-        run: gradle assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
