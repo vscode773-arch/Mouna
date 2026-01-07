@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "746637889694",
+    "project_id": "mouna-42235",
+    "storage_bucket": "mouna-42235.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746637889694:android:9535bfb1ff1339df962b8f",
+        "android_client_info": {
+          "package_name": "com.mouna.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoDh6nDTshuKmPOYayYrqccpzhpXY8CqM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

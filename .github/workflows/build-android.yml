@@ -56,6 +56,14 @@ jobs:
            echo "Syncing assets..."
            npx cap sync android
 
+           # 4. Inject Firebase Config (Critical for Notifications)
+           if [ -f google-services.json ]; then
+             echo "Found google-services.json, injecting into Android project..."
+             cp google-services.json android/app/
+           else
+             echo "::warning::google-services.json NOT FOUND! Notifications will NOT work."
+           fi
+
       # ---------------------------------------------------------
       # Antigravity Step: Inject Icons & Permissions (The Fix)
       # ---------------------------------------------------------

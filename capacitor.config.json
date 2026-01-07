@@ -1,5 +1,16 @@
 {
   "appId": "com.mouna.app",
   "appName": "Mouna",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ],
+      "icon": "ic_launcher_round",
+      "iconColor": "#333333"
+    }
+  }
 }
