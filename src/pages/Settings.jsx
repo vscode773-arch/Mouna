@@ -326,46 +326,48 @@ export default function Settings() {
                     </div>
                 </div>
 
-                <div className="mt-4 p-4 bg-gray-100 dark:bg-slate-900 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700">
-                    <p className="font-bold mb-2 text-slate-800 dark:text-slate-200">🛠 تشخيص الإشعارات:</p>
-                    <div className="space-y-1">
-                        <p>ID: <span id="debug-onesignal-id">جاري التحميل...</span></p>
-                        <p>Permission: <span id="debug-permission">جاري التحقق...</span></p>
-                    </div>
-                    <button
-                        onClick={async () => {
-                            try {
-                                const { Capacitor } = await import('@capacitor/core');
-                                if (Capacitor.isNativePlatform()) {
-                                    const OneSignalNative = (await import('onesignal-cordova-plugin')).default;
+                {user?.role === 'admin' && (
+                    <div className="mt-4 p-4 bg-gray-100 dark:bg-slate-900 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700">
+                        <p className="font-bold mb-2 text-slate-800 dark:text-slate-200">🛠 تشخيص الإشعارات (مشرف فقط):</p>
+                        <div className="space-y-1">
+                            <p>ID: <span id="debug-onesignal-id">جاري التحميل...</span></p>
+                            <p>Permission: <span id="debug-permission">جاري التحقق...</span></p>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const { Capacitor } = await import('@capacitor/core');
+                                    if (Capacitor.isNativePlatform()) {
+                                        const OneSignalNative = (await import('onesignal-cordova-plugin')).default;
 
-                                    // OneSignal v5 Syntax
-                                    OneSignalNative.Notifications.requestPermission(true).then((accepted) => {
-                                        const statusText = accepted ? "Granted ✅" : "Denied ❌";
-                                        document.getElementById('debug-permission').innerText = statusText;
-                                        alert("Permission Status: " + statusText);
-                                    });
+                                        // OneSignal v5 Syntax
+                                        OneSignalNative.Notifications.requestPermission(true).then((accepted) => {
+                                            const statusText = accepted ? "Granted ✅" : "Denied ❌";
+                                            document.getElementById('debug-permission').innerText = statusText;
+                                            alert("Permission Status: " + statusText);
+                                        });
 
-                                    setTimeout(() => {
-                                        const pushId = OneSignalNative.User.pushSubscription.id;
-                                        const optedIn = OneSignalNative.User.pushSubscription.optedIn;
-                                        document.getElementById('debug-onesignal-id').innerText = pushId || "No ID Yet";
-                                        alert(`Info (v5):\nID: ${pushId}\nOpted In: ${optedIn}`);
-                                    }, 1000);
+                                        setTimeout(() => {
+                                            const pushId = OneSignalNative.User.pushSubscription.id;
+                                            const optedIn = OneSignalNative.User.pushSubscription.optedIn;
+                                            document.getElementById('debug-onesignal-id').innerText = pushId || "No ID Yet";
+                                            alert(`Info (v5):\nID: ${pushId}\nOpted In: ${optedIn}`);
+                                        }, 1000);
 
-                                } else {
-                                    alert("Not on Native Android");
+                                    } else {
+                                        alert("Not on Native Android");
+                                    }
+                                } catch (e) {
+                                    console.error(e);
+                                    alert("Error: " + e.message);
                                 }
-                            } catch (e) {
-                                console.error(e);
-                                alert("Error: " + e.message);
-                            }
-                        }}
-                        className="mt-3 px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded hover:bg-slate-300 text-slate-800 dark:text-white transition-colors"
-                    >
-                        فحص وإصلاح يدوي 🔧
-                    </button>
-                </div>
+                            }}
+                            className="mt-3 px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded hover:bg-slate-300 text-slate-800 dark:text-white transition-colors"
+                        >
+                            فحص وإصلاح يدوي 🔧
+                        </button>
+                    </div>
+                )}
             </Section>
 
             {user?.role === 'admin' && (

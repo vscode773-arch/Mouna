@@ -105,6 +105,43 @@ jobs:
 
           echo "✅ Icons injected successfully."
 
+          # E. Generate Notification Icon (White silhouette for status bar)
+          echo "Generating notification icon..."
+          
+          # Function to create white notification icon
+          generate_notification_icon() {
+            res_name=$1
+            px_size=$2
+            target_dir="android/app/src/main/res/drawable-$res_name"
+            
+            mkdir -p $target_dir
+            
+            # Create a white silhouette notification icon
+            # 1. Take the source icon
+            # 2. Convert to grayscale
+            # 3. Threshold to create silhouette
+            # 4. Colorize to white
+            # 5. Make background transparent
+            convert resources/icon.png \
+              -resize ${px_size}x${px_size} \
+              -colorspace Gray \
+              -threshold 50% \
+              -negate \
+              -fuzz 10% \
+              -transparent black \
+              -fill white \
+              -opaque white \
+              $target_dir/ic_stat_onesignal_default.png
+          }
+          
+          generate_notification_icon "mdpi" "24"
+          generate_notification_icon "hdpi" "36"
+          generate_notification_icon "xhdpi" "48"
+          generate_notification_icon "xxhdpi" "72"
+          generate_notification_icon "xxxhdpi" "96"
+          
+          echo "✅ Notification icon injected successfully."
+
           # D. Update AndroidManifest.xml
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           

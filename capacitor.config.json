@@ -9,8 +9,8 @@
         "sound",
         "alert"
       ],
-      "icon": "ic_launcher_round",
-      "iconColor": "#333333"
+      "icon": "ic_stat_onesignal_default",
+      "iconColor": "#10b981"
     }
   }
 }
