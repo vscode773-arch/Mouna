@@ -114,9 +114,13 @@ jobs:
           sed -i 's/android:icon="[^"]*"/android:icon="@mipmap\/ic_launcher"/' $MANIFEST
           sed -i 's/android:roundIcon="[^"]*"/android:roundIcon="@mipmap\/ic_launcher_round"/' $MANIFEST
           
-          # 2. Re-inject Camera Permission (Lost during recreation)
-          # Insert CAMERA permission right after INTERNET permission
-          sed -i '/android.permission.INTERNET/a \    <uses-permission android:name="android.permission.CAMERA" />' $MANIFEST
+          # 2. Re-inject Permissions (Camera + Notifications)
+          # Insert CAMERA and POST_NOTIFICATIONS permissions right after INTERNET permission
+          sed -i '/android.permission.INTERNET/a \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' $MANIFEST
+
+          # 3. Allow Cleartext Traffic (Fix for Login Error 2)
+          # Injects android:usesCleartextTraffic="true" into the <application> tag
+          sed -i 's/<application/<application android:usesCleartextTraffic="true"/' $MANIFEST
 
       # ---------------------------------------------------------
       # Build Steps
