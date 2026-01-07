@@ -450,6 +450,82 @@ app.get('/api/audit-logs', async (req, res) => {
     }
 });
 
+// --- Expiry Check & Notification Route ---
+app.get('/api/check-expiry', async (req, res) => {
+    try {
+        const today = new Date();
+        const sevenDaysFromNow = new Date();
+        sevenDaysFromNow.setDate(today.getDate() + 7);
+
+        // 1. Find Expiring Products
+        const expiringProducts = await prisma.product.findMany({
+            where: {
+                expiry: {
+                    gte: today,
+                    lte: sevenDaysFromNow
+                }
+            },
+            select: { name: true, expiry: true, category: true }
+        });
+
+        if (expiringProducts.length === 0) {
+            return res.status(200).json({ message: 'No expiring products found.' });
+        }
+
+        // 2. Prepare Notification
+        const count = expiringProducts.length;
+        const message = `⚠️ تنبيه: لديكم ${count} منتجات ستنتهي صلاحيتها خلال 7 أيام! تفقد المخزون الآن.`;
+        const heading = "🔔 تنبيه انتهاء الصلاحية";
+
+        // 3. Send to OneSignal
+        if (!process.env.ONESIGNAL_REST_API_KEY) {
+            console.warn("⚠️ Skipping OneSignal: No REST API Key found in environment");
+            return res.status(200).json({
+                message: "Found products but missing API key",
+                count,
+                products: expiringProducts.map(p => ({ name: p.name, expiry: p.expiry }))
+            });
+        }
+
+        const oneSignalResponse = await fetch("https://onesignal.com/api/v1/notifications", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Basic ${process.env.ONESIGNAL_REST_API_KEY}`
+            },
+            body: JSON.stringify({
+                app_id: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
+                contents: { "en": message, "ar": message },
+                headings: { "en": heading, "ar": heading },
+                included_segments: ["Total Subscriptions"], // Send to everyone subscribed
+                data: { type: "expiry_alert", count }
+            })
+        });
+
+        const result = await oneSignalResponse.json();
+
+        // Check for specific OneSignal errors
+        if (result.errors) {
+            console.error("❌ OneSignal API Error:", result.errors);
+            return res.status(500).json({ error: "OneSignal Failed", details: result.errors });
+        }
+
+        console.log(`✅ Notification sent successfully! ID: ${result.id}`);
+
+        res.status(200).json({
+            success: true,
+            productsFound: count,
+            notificationSent: true,
+            oneSignalId: result.id,
+            products: expiringProducts.map(p => ({ name: p.name, category: p.category, expiry: p.expiry }))
+        });
+
+    } catch (error) {
+        console.error('❌ Check Expiry Error:', error);
+        res.status(500).json({ error: 'Failed to check expiry', details: error.message });
+    }
+});
+
 // --- Backup & Restore Routes ---
 app.get('/api/backup', async (req, res) => {
     try {
