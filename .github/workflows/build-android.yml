@@ -26,7 +26,12 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+      - name: Install NPM Dependencies
         run: |
           npm install --legacy-peer-deps
 
@@ -35,28 +40,85 @@ jobs:
         env:
           CI: false
 
-      # Generate Android Project Freshly
+      # ---------------------------------------------------------
+      # Antigravity Step: Reinvigorate Android Project
+      # ---------------------------------------------------------
       - name: Generate Android Project
         run: |
-           # Remove existing if any (just in case)
+           # 1. Start Fresh: Remove existing android folder to avoid conflicts
            rm -rf android
-           # Add platform
+           
+           # 2. Add Android Platform
            echo "Adding Android platform..."
            npx cap add android
-           # Sync
+           
+           # 3. Sync Web Assets
            echo "Syncing assets..."
            npx cap sync android
-           
-      # Fix Gradle Version (Critical Step)
-      - name: Update Gradle Wrapper to 8.5
+
+      # ---------------------------------------------------------
+      # Antigravity Step: Inject Icons & Permissions (The Fix)
+      # ---------------------------------------------------------
+      - name: Inject Custom Icons & Configure Manifest
+        run: |
+          # A. Validate Source Icon
+          if [ ! -f resources/icon.png ]; then
+            echo "::error::resources/icon.png not found! Please upload your icon."
+            exit 1
+          fi
+
+          echo "Found source icon, starting processing..."
+
+          # B. Remove Adaptive Icon Config (The 'Red Icon' Fix)
+          # Deleting this folder forces Android to use the standard PNGs we generate below
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+
+          # C. Generate Icons for all Densities using ImageMagick
+          # Function to resize and copy
+          generate_icon() {
+            res_name=$1
+            px_size=$2
+            target_dir="android/app/src/main/res/mipmap-$res_name"
+            
+            echo "Generating $res_name ($px_size x $px_size)..."
+            mkdir -p $target_dir
+            
+            # Generate Standard Icon
+            convert resources/icon.png -resize ${px_size}x${px_size} $target_dir/ic_launcher.png
+            # Generate Round Icon
+            convert resources/icon.png -resize ${px_size}x${px_size} $target_dir/ic_launcher_round.png
+          }
+
+          generate_icon "mdpi" "48"
+          generate_icon "hdpi" "72"
+          generate_icon "xhdpi" "96"
+          generate_icon "xxhdpi" "144"
+          generate_icon "xxxhdpi" "192"
+
+          echo "✅ Icons injected successfully."
+
+          # D. Update AndroidManifest.xml
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          
+          echo "Updating Manifest permissions and icon references..."
+          
+          # 1. Force icon references (just in case)
+          sed -i 's/android:icon="[^"]*"/android:icon="@mipmap\/ic_launcher"/' $MANIFEST
+          sed -i 's/android:roundIcon="[^"]*"/android:roundIcon="@mipmap\/ic_launcher_round"/' $MANIFEST
+          
+          # 2. Re-inject Camera Permission (Lost during recreation)
+          # Insert CAMERA permission right after INTERNET permission
+          sed -i '/android.permission.INTERNET/a \    <uses-permission android:name="android.permission.CAMERA" />' $MANIFEST
+
+      # ---------------------------------------------------------
+      # Build Steps
+      # ---------------------------------------------------------
+      - name: Fix Gradle Wrapper Version
         working-directory: android
         run: |
-          echo "Updating Gradle wrapper properties..."
           sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip|g' gradle/wrapper/gradle-wrapper.properties
-          cat gradle/wrapper/gradle-wrapper.properties
 
-      # Build APK
-      - name: Build APK
+      - name: Build Debug APK
         working-directory: android
         run: |
           chmod +x gradlew
@@ -65,5 +127,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: mouna-app-debug
+          name: mouna-app-debug-fixed
           path: android/app/build/outputs/apk/debug/app-debug.apk
