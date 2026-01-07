@@ -326,7 +326,6 @@ export default function Settings() {
                     </div>
                 </div>
 
-                {/* --- DIAGNOSTICS SECTION STARTS --- */}
                 <div className="mt-4 p-4 bg-gray-100 dark:bg-slate-900 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700">
                     <p className="font-bold mb-2 text-slate-800 dark:text-slate-200">🛠 تشخيص الإشعارات:</p>
                     <div className="space-y-1">
@@ -340,22 +339,25 @@ export default function Settings() {
                                 if (Capacitor.isNativePlatform()) {
                                     const OneSignalNative = (await import('onesignal-cordova-plugin')).default;
 
-                                    // 1. Force Permission
-                                    OneSignalNative.promptForPushNotificationsWithUserResponse((accepted) => {
-                                        alert("Permission Request Result: " + accepted);
-                                        document.getElementById('debug-permission').innerText = accepted ? "Granted ✅" : "Denied ❌";
+                                    // OneSignal v5 Syntax
+                                    OneSignalNative.Notifications.requestPermission(true).then((accepted) => {
+                                        const statusText = accepted ? "Granted ✅" : "Denied ❌";
+                                        document.getElementById('debug-permission').innerText = statusText;
+                                        alert("Permission Status: " + statusText);
                                     });
 
-                                    // 2. Get Device State
-                                    const state = await OneSignalNative.getDeviceState();
-                                    document.getElementById('debug-onesignal-id').innerText = state?.userId || "No ID";
-                                    document.getElementById('debug-permission').innerText = state?.hasNotificationPermission ? "Granted ✅" : "Missing ❌";
+                                    setTimeout(() => {
+                                        const pushId = OneSignalNative.User.pushSubscription.id;
+                                        const optedIn = OneSignalNative.User.pushSubscription.optedIn;
+                                        document.getElementById('debug-onesignal-id').innerText = pushId || "No ID Yet";
+                                        alert(`Info (v5):\nID: ${pushId}\nOpted In: ${optedIn}`);
+                                    }, 1000);
 
-                                    alert("Device State:\n" + JSON.stringify(state, null, 2));
                                 } else {
                                     alert("Not on Native Android");
                                 }
                             } catch (e) {
+                                console.error(e);
                                 alert("Error: " + e.message);
                             }
                         }}
@@ -364,7 +366,6 @@ export default function Settings() {
                         فحص وإصلاح يدوي 🔧
                     </button>
                 </div>
-                {/* --- DIAGNOSTICS SECTION ENDS --- */}
             </Section>
 
             {user?.role === 'admin' && (
@@ -396,7 +397,7 @@ export default function Settings() {
                         </button>
                         <button
                             onClick={handleRestoreClick}
-                            className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/30 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:border-amber-200 transition-all border border-transparent group"
+                            className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/30 rounded-xl hover:bg-emerald-50 dark:hover:bg-amber-500/10 hover:border-amber-200 transition-all border border-transparent group"
                         >
                             <span className="font-medium text-slate-700 dark:text-slate-300 group-hover:text-amber-600 dark:group-hover:text-amber-400">استعادة البيانات</span>
                             <RefreshCcw className="w-4 h-4 text-slate-400 group-hover:text-amber-500" />

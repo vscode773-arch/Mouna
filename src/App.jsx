@@ -54,21 +54,22 @@ export default function App() {
           // --- NATIVE (ANDROID/APK) INITIALIZATION ---
           console.log("Initializing Native OneSignal...");
           const OneSignalNative = (await import('onesignal-cordova-plugin')).default;
-          
-          // Remove this if you want to silence debug logs
-          OneSignalNative.setLogLevel(6, 0);
-          
-          OneSignalNative.setAppId(APP_ID);
-          
-          OneSignalNative.setNotificationOpenedHandler((jsonData) => {
-            console.log('Notification opened:', jsonData);
+
+          // OneSignal v5 SDK Initialization
+          OneSignalNative.Debug.setLogLevel(6);
+
+          OneSignalNative.initialize(APP_ID);
+
+          // Listen for notification clicks (v5 syntax)
+          OneSignalNative.Notifications.addEventListener('click', (event) => {
+            console.log('Notification clicked:', event);
           });
 
-          // Prompt for permission on Android 13+
-          OneSignalNative.promptForPushNotificationsWithUserResponse((accepted) => {
+          // Request notification permission (v5 syntax)
+          OneSignalNative.Notifications.requestPermission(true).then((accepted) => {
             console.log("User accepted notifications: " + accepted);
           });
-          
+
         } else {
           // --- WEB INITIALIZATION ---
           console.log("Initializing Web OneSignal...");
