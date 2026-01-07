@@ -325,6 +325,46 @@ export default function Settings() {
                         </label>
                     </div>
                 </div>
+
+                {/* --- DIAGNOSTICS SECTION STARTS --- */}
+                <div className="mt-4 p-4 bg-gray-100 dark:bg-slate-900 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700">
+                    <p className="font-bold mb-2 text-slate-800 dark:text-slate-200">🛠 تشخيص الإشعارات:</p>
+                    <div className="space-y-1">
+                        <p>ID: <span id="debug-onesignal-id">جاري التحميل...</span></p>
+                        <p>Permission: <span id="debug-permission">جاري التحقق...</span></p>
+                    </div>
+                    <button
+                        onClick={async () => {
+                            try {
+                                const { Capacitor } = await import('@capacitor/core');
+                                if (Capacitor.isNativePlatform()) {
+                                    const OneSignalNative = (await import('onesignal-cordova-plugin')).default;
+
+                                    // 1. Force Permission
+                                    OneSignalNative.promptForPushNotificationsWithUserResponse((accepted) => {
+                                        alert("Permission Request Result: " + accepted);
+                                        document.getElementById('debug-permission').innerText = accepted ? "Granted ✅" : "Denied ❌";
+                                    });
+
+                                    // 2. Get Device State
+                                    const state = await OneSignalNative.getDeviceState();
+                                    document.getElementById('debug-onesignal-id').innerText = state?.userId || "No ID";
+                                    document.getElementById('debug-permission').innerText = state?.hasNotificationPermission ? "Granted ✅" : "Missing ❌";
+
+                                    alert("Device State:\n" + JSON.stringify(state, null, 2));
+                                } else {
+                                    alert("Not on Native Android");
+                                }
+                            } catch (e) {
+                                alert("Error: " + e.message);
+                            }
+                        }}
+                        className="mt-3 px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded hover:bg-slate-300 text-slate-800 dark:text-white transition-colors"
+                    >
+                        فحص وإصلاح يدوي 🔧
+                    </button>
+                </div>
+                {/* --- DIAGNOSTICS SECTION ENDS --- */}
             </Section>
 
             {user?.role === 'admin' && (
