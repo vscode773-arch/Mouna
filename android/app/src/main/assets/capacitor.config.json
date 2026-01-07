@@ -1,5 +1,10 @@
 {
 	"appId": "com.mouna.app",
 	"appName": "Mouna",
-	"webDir": "dist"
+	"webDir": "dist",
+	"plugins": {
+		"CapacitorUpdater": {
+			"autoUpdate": false
+		}
+	}
 }
