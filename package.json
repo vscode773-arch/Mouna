@@ -22,6 +22,7 @@
     "framer-motion": "^12.23.26",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.562.0",
+    "onesignal-cordova-plugin": "^5.2.19",
     "prisma": "^6.19.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

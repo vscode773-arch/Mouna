@@ -44,21 +44,48 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
 
-    // 2. Initialize OneSignal with explicit scope and path
-    try {
-      OneSignal.init({
-        appId: "b652d9f4-6251-4741-af3d-f1cea47e50d8",
-        allowLocalhostAsSecureOrigin: true,
-        // CRITICAL: Point to the merged service worker we created
-        serviceWorkerPath: "sw.js",
-        serviceWorkerParam: { scope: "/" },
-      }).then(() => {
-        // Automatically ask for permission if not granted
-        OneSignal.Slidedown.promptPush();
-      });
-    } catch (error) {
-      console.error("OneSignal Init Error:", error);
-    }
+    // 2. Hybrid OneSignal Initialization (Web & Native)
+    const initOneSignal = async () => {
+      try {
+        const { Capacitor } = await import('@capacitor/core');
+        const APP_ID = "b652d9f4-6251-4741-af3d-f1cea47e50d8";
+
+        if (Capacitor.isNativePlatform()) {
+          // --- NATIVE (ANDROID/APK) INITIALIZATION ---
+          console.log("Initializing Native OneSignal...");
+          const OneSignalNative = (await import('onesignal-cordova-plugin')).default;
+          
+          // Remove this if you want to silence debug logs
+          OneSignalNative.setLogLevel(6, 0);
+          
+          OneSignalNative.setAppId(APP_ID);
+          
+          OneSignalNative.setNotificationOpenedHandler((jsonData) => {
+            console.log('Notification opened:', jsonData);
+          });
+
+          // Prompt for permission on Android 13+
+          OneSignalNative.promptForPushNotificationsWithUserResponse((accepted) => {
+            console.log("User accepted notifications: " + accepted);
+          });
+          
+        } else {
+          // --- WEB INITIALIZATION ---
+          console.log("Initializing Web OneSignal...");
+          await OneSignal.init({
+            appId: APP_ID,
+            allowLocalhostAsSecureOrigin: true,
+            serviceWorkerPath: "sw.js",
+            serviceWorkerParam: { scope: "/" },
+          });
+          OneSignal.Slidedown.promptPush();
+        }
+      } catch (error) {
+        console.error("OneSignal Init Error:", error);
+      }
+    };
+
+    initOneSignal();
   }, []);
 
   return (
