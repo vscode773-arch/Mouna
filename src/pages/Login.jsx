@@ -40,15 +40,16 @@ export default function Login() {
                 className="w-full max-w-md bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl relative z-10"
             >
                 <div className="text-center mb-8">
-                    <div className="w-24 h-24 mx-auto mb-6 relative group">
-                        <div className="absolute inset-0 bg-emerald-500/30 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500" />
-                        <div className="relative w-full h-full rounded-full overflow-hidden border border-slate-600/50 shadow-2xl bg-white flex items-center justify-center">
-                            <img
-                                src="/pwa-192x192.png"
-                                alt="EXP Logo"
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
+                    <div className="w-40 mx-auto mb-8 relative group">
+                        {/* Ambient Glow */}
+                        <div className="absolute inset-0 bg-emerald-500/20 blur-2xl group-hover:blur-3xl transition-all duration-500 rounded-full" />
+
+                        {/* Transparent Logo */}
+                        <img
+                            src="/exp_logo_white.png"
+                            alt="EXP Logo"
+                            className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)] hover:drop-shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all duration-300"
+                        />
                     </div>
                     <h1 className="text-2xl font-bold text-white mb-2">تسجيل الدخول</h1>
                     <p className="text-slate-400">مرحباً بك في نظام متابعة الصلاحية</p>
