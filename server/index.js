@@ -453,9 +453,13 @@ app.get('/api/audit-logs', async (req, res) => {
 // --- Expiry Check & Notification Route ---
 app.get('/api/check-expiry', async (req, res) => {
     try {
+        // Fix: Reset time to midnight to include products expiring today
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         const sevenDaysFromNow = new Date();
         sevenDaysFromNow.setDate(today.getDate() + 7);
+        sevenDaysFromNow.setHours(23, 59, 59, 999); // Include the end of the 7th day
 
         // 1. Find Expiring Products
         const expiringProducts = await prisma.product.findMany({
