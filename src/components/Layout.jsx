@@ -39,9 +39,7 @@ export default function Layout() {
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-800 border-l border-gray-200 dark:border-slate-700 h-screen sticky top-0 z-40 shadow-xl">
                 <div className="p-6 flex items-center gap-3 border-b border-gray-100 dark:border-slate-700/50">
-                    <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-                        <Package className="text-white w-5 h-5" />
-                    </div>
+                    <img src="/pwa-192x192.png" alt="Logo" className="w-8 h-8 object-contain" />
                     <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-600">Mouna App</h1>
                 </div>
 
@@ -86,9 +84,7 @@ export default function Layout() {
                 {/* Mobile Header */}
                 <header className="md:hidden h-16 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-                            <Package className="text-white w-5 h-5" />
-                        </div>
+                        <img src="/pwa-192x192.png" alt="Logo" className="w-8 h-8 object-contain" />
                         <span className="font-bold text-lg dark:text-white">Mouna</span>
                     </div>
                     <div className="flex items-center gap-3">
