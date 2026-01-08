@@ -411,6 +411,53 @@ export default function Settings() {
                             accept=".json"
                             className="hidden"
                         />
+                        <button
+                            onClick={async () => {
+                                setConfirm({
+                                    isOpen: true,
+                                    type: 'info',
+                                    variant: 'info', // Use info/primary variant
+                                    title: 'جاري الفحص...',
+                                    message: 'جاري فحص المنتجات وإرسال التنبيهات...',
+                                    confirmText: 'يرجى الانتظار',
+                                    showCancel: false,
+                                    action: () => { }
+                                });
+
+                                try {
+                                    const res = await fetch(`${API_URL}/api/check-expiry`);
+                                    const data = await res.json();
+
+                                    setConfirm({
+                                        isOpen: true,
+                                        type: 'info',
+                                        variant: 'success',
+                                        title: 'تم الفحص بنجاح',
+                                        message: data.success
+                                            ? `تم إرسال إشعارات لـ ${data.productsFound} منتج(ات) قريبة من الانتهاء.`
+                                            : `الفحص مكتمل. ${data.message || 'لا توجد منتجات قريبة من الانتهاء حالياً.'}`,
+                                        confirmText: 'حسناً',
+                                        showCancel: false,
+                                        action: () => setConfirm(prev => ({ ...prev, isOpen: false }))
+                                    });
+                                } catch (error) {
+                                    setConfirm({
+                                        isOpen: true,
+                                        type: 'error',
+                                        variant: 'danger',
+                                        title: 'فشل الفحص',
+                                        message: 'حدث خطأ أثناء محاولة الاتصال بالخادم.',
+                                        confirmText: 'إغلاق',
+                                        showCancel: false,
+                                        action: () => setConfirm(prev => ({ ...prev, isOpen: false }))
+                                    });
+                                }
+                            }}
+                            className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/30 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-200 transition-all border border-transparent group"
+                        >
+                            <span className="font-medium text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">فحص الصلاحية وإرسال تنبيهات</span>
+                            <Bell className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
+                        </button>
                     </div>
                 </Section>
             )}
