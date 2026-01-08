@@ -425,7 +425,14 @@ export default function Settings() {
                                 });
 
                                 try {
-                                    const res = await fetch(`${API_URL}/api/check-expiry`);
+                                    // Add timestamp to prevent caching + force fresh request
+                                    const res = await fetch(`${API_URL}/api/check-expiry?t=${Date.now()}`, {
+                                        cache: 'no-store',
+                                        headers: {
+                                            'Pragma': 'no-cache',
+                                            'Cache-Control': 'no-cache'
+                                        }
+                                    });
                                     const data = await res.json();
 
                                     setConfirm({
